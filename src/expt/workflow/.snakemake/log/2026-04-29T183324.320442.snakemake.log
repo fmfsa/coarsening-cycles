@@ -1,0 +1,53 @@
+Assuming unrestricted shared filesystem usage.
+host: AICheetah
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job               count
+--------------  -------
+synth_generate        1
+synth_fit             1
+synth_evaluate        1
+total                 3
+
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 18:33:24 2026]
+localrule synth_generate:
+    output: results/synth/regime=easy/d=10/num_cycles=3/density=0.3/samp_size=500/seed=0/dataset.npz
+    jobid: 1
+    reason: Forced execution
+    wildcards: regime=easy, d=10, num_cycles=3, density=0.3, samp_size=500, seed=0
+    resources: tmpdir=/tmp
+[Wed Apr 29 18:33:24 2026]
+Finished jobid: 1 (Rule: synth_generate)
+1 of 3 steps (33%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 18:33:24 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=3/density=0.3/samp_size=500/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=3/density=0.3/samp_size=500/seed=0/method=lacerda/model.pkl
+    jobid: 2
+    reason: Forced execution
+    wildcards: regime=easy, d=10, num_cycles=3, density=0.3, samp_size=500, seed=0, method=lacerda
+    resources: tmpdir=/tmp
+[Wed Apr 29 18:33:25 2026]
+Finished jobid: 2 (Rule: synth_fit)
+2 of 3 steps (67%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 18:33:25 2026]
+localrule synth_evaluate:
+    input: results/synth/regime=easy/d=10/num_cycles=3/density=0.3/samp_size=500/seed=0/dataset.npz, results/synth/regime=easy/d=10/num_cycles=3/density=0.3/samp_size=500/seed=0/method=lacerda/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=3/density=0.3/samp_size=500/seed=0/method=lacerda/metrics.csv
+    jobid: 0
+    reason: Forced execution
+    wildcards: regime=easy, d=10, num_cycles=3, density=0.3, samp_size=500, seed=0, method=lacerda
+    resources: tmpdir=/tmp
+[Wed Apr 29 18:33:25 2026]
+Finished jobid: 0 (Rule: synth_evaluate)
+3 of 3 steps (100%) done
+Complete log(s): /home/fmfsa/Repositories/repare_cycle/src/expt/workflow/.snakemake/log/2026-04-29T183324.320442.snakemake.log

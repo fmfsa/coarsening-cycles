@@ -1,0 +1,40 @@
+Assuming unrestricted shared filesystem usage.
+host: AICheetah
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job               count
+--------------  -------
+synth_fit             1
+synth_evaluate        1
+total                 2
+
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 09:55:03 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=3/density=0.5/samp_size=1000/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=3/density=0.5/samp_size=1000/seed=1/method=lacerda_prune/model.pkl
+    jobid: 2
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=3/density=0.5/samp_size=1000/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=3, density=0.5, samp_size=1000, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 09:55:05 2026]
+Finished jobid: 2 (Rule: synth_fit)
+1 of 2 steps (50%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 09:55:05 2026]
+localrule synth_evaluate:
+    input: results/synth/regime=easy/d=10/num_cycles=3/density=0.5/samp_size=1000/seed=1/dataset.npz, results/synth/regime=easy/d=10/num_cycles=3/density=0.5/samp_size=1000/seed=1/method=lacerda_prune/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=3/density=0.5/samp_size=1000/seed=1/method=lacerda_prune/metrics.csv
+    jobid: 0
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=3/density=0.5/samp_size=1000/seed=1/method=lacerda_prune/metrics.csv; Input files updated by another job: results/synth/regime=easy/d=10/num_cycles=3/density=0.5/samp_size=1000/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=3, density=0.5, samp_size=1000, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 09:55:05 2026]
+Finished jobid: 0 (Rule: synth_evaluate)
+2 of 2 steps (100%) done
+Complete log(s): /home/fmfsa/Repositories/repare_cycle/src/expt/workflow/.snakemake/log/2026-04-29T095503.357909.snakemake.log

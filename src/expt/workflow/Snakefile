@@ -1,0 +1,9 @@
+include: "rules/synth.smk"
+
+
+rule all:
+    input:
+        expand(
+            "results/synth_main_regime={regime}_density={density}.pdf",
+            regime=synth_regimes, density=synth_densities,
+        ),

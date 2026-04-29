@@ -1,0 +1,2 @@
+method,regime,num_cycles,density,samp_size,seed,d,num_nodes,ari_scc,precision,recall,fscore,var_precision,var_recall,var_fscore,var_shd,inter_scc_precision,inter_scc_recall,inter_scc_fscore,chosen_threshold,chosen_beta,bic_score,runtime_sec,num_sccs,max_scc_size,num_nontrivial,frac_nontrivial,has_cycles,num_parts_est
+lacerda,easy,5,0.3,100,2,10,10,0.0,1.0,1.0,1.0,0.2909090909090909,0.8888888888888888,0.4383561643835616,41,0.15217391304347827,0.875,0.2592592592592593,,,,0.9769431890454143,5,2,5,1.0,1,1

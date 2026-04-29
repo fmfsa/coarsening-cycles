@@ -1,0 +1,17 @@
+# Devenv
+.devenv*
+devenv.local.nix
+.envrc
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+# python
+**/__pycache__/
+
+# snakemake experiments
+/src/expt/.snakemake/
+/src/expt/results/

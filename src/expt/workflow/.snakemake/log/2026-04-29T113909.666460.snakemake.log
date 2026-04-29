@@ -1,0 +1,1152 @@
+Assuming unrestricted shared filesystem usage.
+host: AICheetah
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Job stats:
+job               count
+--------------  -------
+synth_fit           324
+synth_evaluate      324
+synth_plot            3
+total               651
+
+Select jobs to execute...
+Execute 8 jobs...
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=100/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=100/seed=2/method=lacerda_repare/model.pkl
+    jobid: 216
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=100/seed=2/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=100, seed=2, method=lacerda_repare
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=1000/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=1000/seed=2/method=lacerda_repare/model.pkl
+    jobid: 505
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=1000/seed=2/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=1000, seed=2, method=lacerda_repare
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=50/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=50/seed=0/method=lacerda_prune/model.pkl
+    jobid: 158
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=50/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.3, samp_size=50, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=0/method=lacerda/model.pkl
+    jobid: 57
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=500, seed=0, method=lacerda
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=50/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=50/seed=1/method=lacerda_prune/model.pkl
+    jobid: 160
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=50/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.3, samp_size=50, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=50/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=50/seed=2/method=lacerda_prune/model.pkl
+    jobid: 162
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=50/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.3, samp_size=50, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=0/method=lacerda_prune/model.pkl
+    jobid: 164
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.3, samp_size=100, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=1/method=lacerda/model.pkl
+    jobid: 60
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=500, seed=1, method=lacerda
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:10 2026]
+Finished jobid: 158 (Rule: synth_fit)
+1 of 651 steps (0.2%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=50/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=50/seed=0/method=lacerda_prune/model.pkl
+    jobid: 664
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=50/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=50, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:10 2026]
+Finished jobid: 60 (Rule: synth_fit)
+2 of 651 steps (0.3%) done
+[Wed Apr 29 11:39:10 2026]
+Finished jobid: 57 (Rule: synth_fit)
+3 of 651 steps (0.5%) done
+Select jobs to execute...
+Execute 2 jobs...
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=1000/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=1000/seed=0/method=lacerda_prune/model.pkl
+    jobid: 152
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=1000/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=1000, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/method=lacerda/model.pkl
+    jobid: 63
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=500, seed=2, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:10 2026]
+Finished jobid: 160 (Rule: synth_fit)
+4 of 651 steps (1%) done
+[Wed Apr 29 11:39:10 2026]
+Finished jobid: 162 (Rule: synth_fit)
+5 of 651 steps (1%) done
+Execute 2 jobs...
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/method=lacerda_prune/model.pkl
+    jobid: 150
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=500, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=1/method=lacerda_prune/model.pkl
+    jobid: 166
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.3, samp_size=100, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:10 2026]
+Finished jobid: 164 (Rule: synth_fit)
+6 of 651 steps (1%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:10 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=50/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=50/seed=2/method=lacerda_repare/model.pkl
+    jobid: 210
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=50/seed=2/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=50, seed=2, method=lacerda_repare
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:11 2026]
+Finished jobid: 216 (Rule: synth_fit)
+7 of 651 steps (1%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:11 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=100/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=100/seed=0/method=lacerda_repare/model.pkl
+    jobid: 212
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=100/seed=0/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=100, seed=0, method=lacerda_repare
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:11 2026]
+Finished jobid: 664 (Rule: synth_fit)
+8 of 651 steps (1%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:11 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=500/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=500/seed=0/method=lacerda/model.pkl
+    jobid: 563
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=500, seed=0, method=lacerda
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:11 2026]
+Finished jobid: 63 (Rule: synth_fit)
+9 of 651 steps (1%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:11 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=50/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=50/seed=1/method=lacerda_prune/model.pkl
+    jobid: 666
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=50/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=50, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:11 2026]
+Finished jobid: 210 (Rule: synth_fit)
+10 of 651 steps (2%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:11 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=1/method=lacerda/model.pkl
+    jobid: 331
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=50, seed=1, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 166 (Rule: synth_fit)
+11 of 651 steps (2%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=50/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=50/seed=2/method=lacerda_prune/model.pkl
+    jobid: 668
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=50/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=50, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 505 (Rule: synth_fit)
+12 of 651 steps (2%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=100/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=100/seed=1/method=lacerda_repare/model.pkl
+    jobid: 214
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=100/seed=1/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=100, seed=1, method=lacerda_repare
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 212 (Rule: synth_fit)
+13 of 651 steps (2%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=500/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=500/seed=1/method=lacerda/model.pkl
+    jobid: 566
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=500, seed=1, method=lacerda
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 563 (Rule: synth_fit)
+14 of 651 steps (2%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=0/method=lacerda/model.pkl
+    jobid: 328
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=50, seed=0, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 666 (Rule: synth_fit)
+15 of 651 steps (2%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=100/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=100/seed=0/method=lacerda_prune/model.pkl
+    jobid: 670
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=100/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=100, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 331 (Rule: synth_fit)
+16 of 651 steps (2%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=2/method=lacerda/model.pkl
+    jobid: 334
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=50, seed=2, method=lacerda
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 150 (Rule: synth_fit)
+17 of 651 steps (3%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=100/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=100/seed=1/method=lacerda_prune/model.pkl
+    jobid: 672
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=100/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=100, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 152 (Rule: synth_fit)
+18 of 651 steps (3%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=0/method=lacerda_repare/model.pkl
+    jobid: 218
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=0/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=500, seed=0, method=lacerda_repare
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 668 (Rule: synth_fit)
+19 of 651 steps (3%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=500/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=500/seed=2/method=lacerda/model.pkl
+    jobid: 569
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=500, seed=2, method=lacerda
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 566 (Rule: synth_fit)
+20 of 651 steps (3%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=50/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=50/seed=1/method=lacerda_repare/model.pkl
+    jobid: 208
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=50/seed=1/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=50, seed=1, method=lacerda_repare
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 334 (Rule: synth_fit)
+21 of 651 steps (3%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=100/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=100/seed=2/method=lacerda_prune/model.pkl
+    jobid: 674
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=100/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=100, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 670 (Rule: synth_fit)
+22 of 651 steps (3%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=1/method=lacerda_repare/model.pkl
+    jobid: 220
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=1/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=500, seed=1, method=lacerda_repare
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:12 2026]
+Finished jobid: 218 (Rule: synth_fit)
+23 of 651 steps (4%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:12 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=0/method=lacerda/model.pkl
+    jobid: 337
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=100, seed=0, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:13 2026]
+Finished jobid: 214 (Rule: synth_fit)
+24 of 651 steps (4%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:13 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=0/method=lacerda_prune/model.pkl
+    jobid: 676
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=500, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:13 2026]
+Finished jobid: 328 (Rule: synth_fit)
+25 of 651 steps (4%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:13 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/method=lacerda_repare/model.pkl
+    jobid: 222
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=500, seed=2, method=lacerda_repare
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:13 2026]
+Finished jobid: 569 (Rule: synth_fit)
+26 of 651 steps (4%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:13 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=1000/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=1000/seed=2/method=lacerda_prune/model.pkl
+    jobid: 662
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=1000/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=1000, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:13 2026]
+Finished jobid: 208 (Rule: synth_fit)
+27 of 651 steps (4%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:13 2026]
+localrule synth_evaluate:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/dataset.npz, results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/method=lacerda_prune/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/method=lacerda_prune/metrics.csv
+    jobid: 149
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/method=lacerda_prune/metrics.csv; Input files updated by another job: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=500, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:13 2026]
+Finished jobid: 672 (Rule: synth_fit)
+28 of 651 steps (4%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:13 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=1000/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=1000/seed=0/method=lacerda/model.pkl
+    jobid: 572
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=1000, seed=0, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:13 2026]
+Finished jobid: 337 (Rule: synth_fit)
+29 of 651 steps (4%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:13 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=1/method=lacerda_prune/model.pkl
+    jobid: 678
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=500, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:13 2026]
+Finished jobid: 676 (Rule: synth_fit)
+30 of 651 steps (5%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:13 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=1000/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=1000/seed=0/method=lacerda_repare/model.pkl
+    jobid: 224
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=1000/seed=0/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=1000, seed=0, method=lacerda_repare
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:13 2026]
+Finished jobid: 149 (Rule: synth_evaluate)
+31 of 651 steps (5%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:13 2026]
+localrule synth_evaluate:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=2/dataset.npz, results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=2/method=lacerda/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=2/method=lacerda/metrics.csv
+    jobid: 332
+    reason: Input files updated by another job: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=2/method=lacerda/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=50, seed=2, method=lacerda
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:13 2026]
+Finished jobid: 662 (Rule: synth_fit)
+32 of 651 steps (5%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:13 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=1/method=lacerda_prune/model.pkl
+    jobid: 642
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=50, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:13 2026]
+Finished jobid: 674 (Rule: synth_fit)
+33 of 651 steps (5%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:13 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=2/method=lacerda_prune/model.pkl
+    jobid: 415
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=50, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:13 2026]
+Finished jobid: 572 (Rule: synth_fit)
+34 of 651 steps (5%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:13 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=0/method=lacerda/model.pkl
+    jobid: 545
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=50, seed=0, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:14 2026]
+Finished jobid: 678 (Rule: synth_fit)
+35 of 651 steps (5%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:14 2026]
+localrule synth_evaluate:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=1/dataset.npz, results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=1/method=lacerda/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=1/method=lacerda/metrics.csv
+    jobid: 329
+    reason: Input files updated by another job: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=1/method=lacerda/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=50, seed=1, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:14 2026]
+Finished jobid: 220 (Rule: synth_fit)
+36 of 651 steps (6%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:14 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=0/method=lacerda_prune/model.pkl
+    jobid: 640
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=50, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:14 2026]
+Finished jobid: 332 (Rule: synth_evaluate)
+37 of 651 steps (6%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:14 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=1/method=lacerda/model.pkl
+    jobid: 313
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.5, samp_size=500, seed=1, method=lacerda
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:14 2026]
+Finished jobid: 222 (Rule: synth_fit)
+38 of 651 steps (6%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:14 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=1/method=lacerda_prune/model.pkl
+    jobid: 413
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=50, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:14 2026]
+Finished jobid: 415 (Rule: synth_fit)
+39 of 651 steps (6%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:14 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=0/method=lacerda_prune/model.pkl
+    jobid: 417
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=100, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:14 2026]
+Finished jobid: 642 (Rule: synth_fit)
+40 of 651 steps (6%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:14 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=0/method=lacerda/model.pkl
+    jobid: 310
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.5, samp_size=500, seed=0, method=lacerda
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:14 2026]
+Finished jobid: 545 (Rule: synth_fit)
+41 of 651 steps (6%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:14 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=2/method=lacerda_prune/model.pkl
+    jobid: 644
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=50, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:14 2026]
+Finished jobid: 329 (Rule: synth_evaluate)
+42 of 651 steps (6%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:14 2026]
+localrule synth_evaluate:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=0/dataset.npz, results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=0/method=lacerda/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=0/method=lacerda/metrics.csv
+    jobid: 335
+    reason: Input files updated by another job: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=0/method=lacerda/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=100, seed=0, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:14 2026]
+Finished jobid: 640 (Rule: synth_fit)
+43 of 651 steps (7%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:14 2026]
+localrule synth_evaluate:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=0/dataset.npz, results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=0/method=lacerda/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=0/method=lacerda/metrics.csv
+    jobid: 326
+    reason: Input files updated by another job: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=0/method=lacerda/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=50, seed=0, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:15 2026]
+Finished jobid: 313 (Rule: synth_fit)
+44 of 651 steps (7%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:15 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=1000/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=1000/seed=2/method=lacerda_repare/model.pkl
+    jobid: 758
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=1000/seed=2/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=1000, seed=2, method=lacerda_repare
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:15 2026]
+Finished jobid: 413 (Rule: synth_fit)
+45 of 651 steps (7%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:15 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=1/method=lacerda/model.pkl
+    jobid: 548
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=50, seed=1, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:15 2026]
+Finished jobid: 644 (Rule: synth_fit)
+46 of 651 steps (7%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:15 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=2/method=lacerda_prune/model.pkl
+    jobid: 638
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=3, density=0.8, samp_size=1000, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:15 2026]
+Finished jobid: 417 (Rule: synth_fit)
+47 of 651 steps (7%) done
+[Wed Apr 29 11:39:15 2026]
+Finished jobid: 310 (Rule: synth_fit)
+48 of 651 steps (7%) done
+Select jobs to execute...
+Execute 2 jobs...
+[Wed Apr 29 11:39:15 2026]
+localrule synth_evaluate:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/dataset.npz, results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/method=lacerda/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/method=lacerda/metrics.csv
+    jobid: 61
+    reason: Input files updated by another job: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=500/seed=2/method=lacerda/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=500, seed=2, method=lacerda
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:15 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=2/method=lacerda_prune/model.pkl
+    jobid: 168
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.3, samp_size=100, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:15 2026]
+Finished jobid: 335 (Rule: synth_evaluate)
+49 of 651 steps (8%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:15 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=0/method=lacerda_prune/model.pkl
+    jobid: 411
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=50/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=50, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:15 2026]
+Finished jobid: 326 (Rule: synth_evaluate)
+50 of 651 steps (8%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:15 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=2/method=lacerda/model.pkl
+    jobid: 542
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=3, density=0.8, samp_size=1000, seed=2, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:15 2026]
+Finished jobid: 224 (Rule: synth_fit)
+51 of 651 steps (8%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:15 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=1000/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=1000/seed=1/method=lacerda_repare/model.pkl
+    jobid: 756
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=1000/seed=1/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=1000, seed=1, method=lacerda_repare
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:15 2026]
+Finished jobid: 758 (Rule: synth_fit)
+52 of 651 steps (8%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:15 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=1/method=lacerda_prune/model.pkl
+    jobid: 636
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=3, density=0.8, samp_size=1000, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:15 2026]
+Finished jobid: 548 (Rule: synth_fit)
+53 of 651 steps (8%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:15 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=1/method=lacerda_prune/model.pkl
+    jobid: 419
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=100, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:16 2026]
+Finished jobid: 61 (Rule: synth_evaluate)
+54 of 651 steps (8%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:16 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=100/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=100/seed=0/method=lacerda_prune/model.pkl
+    jobid: 646
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=100/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=100, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:16 2026]
+Finished jobid: 638 (Rule: synth_fit)
+55 of 651 steps (8%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:16 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=1000/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=1000/seed=2/method=lacerda_prune/model.pkl
+    jobid: 409
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=1000/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.5, samp_size=1000, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:16 2026]
+Finished jobid: 542 (Rule: synth_fit)
+56 of 651 steps (9%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:16 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=2/method=lacerda/model.pkl
+    jobid: 316
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.5, samp_size=500, seed=2, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:16 2026]
+Finished jobid: 756 (Rule: synth_fit)
+57 of 651 steps (9%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:16 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=100/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=100/seed=2/method=lacerda/model.pkl
+    jobid: 307
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.5, samp_size=100, seed=2, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:16 2026]
+Finished jobid: 168 (Rule: synth_fit)
+58 of 651 steps (9%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:16 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=1000/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=1000/seed=0/method=lacerda_repare/model.pkl
+    jobid: 754
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=1000/seed=0/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=1000, seed=0, method=lacerda_repare
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:16 2026]
+Finished jobid: 411 (Rule: synth_fit)
+59 of 651 steps (9%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:16 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=2/method=lacerda_prune/model.pkl
+    jobid: 421
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=100/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=100, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:16 2026]
+Finished jobid: 646 (Rule: synth_fit)
+60 of 651 steps (9%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:16 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=0/method=lacerda_prune/model.pkl
+    jobid: 634
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=3, density=0.8, samp_size=1000, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:16 2026]
+Finished jobid: 409 (Rule: synth_fit)
+61 of 651 steps (9%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:16 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=100/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=100/seed=1/method=lacerda_prune/model.pkl
+    jobid: 648
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=100/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=100, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:16 2026]
+Finished jobid: 316 (Rule: synth_fit)
+62 of 651 steps (10%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:16 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=1000/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=1000/seed=1/method=lacerda_prune/model.pkl
+    jobid: 407
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=1000/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.5, samp_size=1000, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:17 2026]
+Finished jobid: 419 (Rule: synth_fit)
+63 of 651 steps (10%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:17 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=50/seed=2/method=lacerda/model.pkl
+    jobid: 551
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=50, seed=2, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:17 2026]
+Finished jobid: 634 (Rule: synth_fit)
+64 of 651 steps (10%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:17 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=1000/seed=1/method=lacerda/model.pkl
+    jobid: 539
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=3, density=0.8, samp_size=1000, seed=1, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:17 2026]
+Finished jobid: 636 (Rule: synth_fit)
+65 of 651 steps (10%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:17 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=2/method=lacerda_repare/model.pkl
+    jobid: 752
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=2/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=500, seed=2, method=lacerda_repare
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:17 2026]
+Finished jobid: 307 (Rule: synth_fit)
+66 of 651 steps (10%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:17 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=500/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=500/seed=2/method=lacerda_prune/model.pkl
+    jobid: 632
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=3/density=0.8/samp_size=500/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=3, density=0.8, samp_size=500, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:17 2026]
+Finished jobid: 551 (Rule: synth_fit)
+67 of 651 steps (10%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:17 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=500/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=500/seed=0/method=lacerda_prune/model.pkl
+    jobid: 423
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=500/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=500, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+[Wed Apr 29 11:39:17 2026]
+Finished jobid: 421 (Rule: synth_fit)
+68 of 651 steps (10%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Apr 29 11:39:17 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=100/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=100/seed=2/method=lacerda_prune/model.pkl
+    jobid: 650
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=100/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.8, samp_size=100, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:17 2026]
+Finished jobid: 648 (Rule: synth_fit)
+69 of 651 steps (11%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:17 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=1000/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=1000/seed=0/method=lacerda_prune/model.pkl
+    jobid: 405
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=1000/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.5, samp_size=1000, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:17 2026]
+Finished jobid: 754 (Rule: synth_fit)
+70 of 651 steps (11%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:17 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=100/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=100/seed=1/method=lacerda/model.pkl
+    jobid: 304
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.5, samp_size=100, seed=1, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:17 2026]
+Finished jobid: 539 (Rule: synth_fit)
+71 of 651 steps (11%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:17 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=500/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=500/seed=1/method=lacerda_prune/model.pkl
+    jobid: 425
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=500/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=500, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:18 2026]
+Finished jobid: 752 (Rule: synth_fit)
+72 of 651 steps (11%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:18 2026]
+localrule synth_evaluate:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=1000/seed=0/dataset.npz, results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=1000/seed=0/method=lacerda_repare/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=1000/seed=0/method=lacerda_repare/metrics.csv
+    jobid: 223
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=1000/seed=0/method=lacerda_repare/metrics.csv; Input files updated by another job: results/synth/regime=easy/d=10/num_cycles=4/density=0.3/samp_size=1000/seed=0/method=lacerda_repare/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.3, samp_size=1000, seed=0, method=lacerda_repare
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:18 2026]
+Finished jobid: 632 (Rule: synth_fit)
+73 of 651 steps (11%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:18 2026]
+localrule synth_evaluate:
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=2/dataset.npz, results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=2/method=lacerda/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=2/method=lacerda/metrics.csv
+    jobid: 314
+    reason: Input files updated by another job: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=2/method=lacerda/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=4, density=0.5, samp_size=500, seed=2, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:18 2026]
+Finished jobid: 423 (Rule: synth_fit)
+74 of 651 steps (11%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:18 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=1/method=lacerda/model.pkl
+    jobid: 87
+    reason: Code has changed since last execution
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.3, samp_size=100, seed=1, method=lacerda
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:18 2026]
+Finished jobid: 407 (Rule: synth_fit)
+75 of 651 steps (12%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:18 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=500/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=500/seed=2/method=lacerda_prune/model.pkl
+    jobid: 427
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=500/seed=2/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=500, seed=2, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:18 2026]
+Finished jobid: 425 (Rule: synth_fit)
+76 of 651 steps (12%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:18 2026]
+localrule synth_fit:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=1000/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=1000/seed=0/method=lacerda_prune/model.pkl
+    jobid: 429
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=1000/seed=0/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.5, samp_size=1000, seed=0, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Wed Apr 29 11:39:18 2026]
+Finished jobid: 223 (Rule: synth_evaluate)
+77 of 651 steps (12%) done
+Execute 1 jobs...
+[Wed Apr 29 11:39:18 2026]
+localrule synth_evaluate:
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=1/dataset.npz, results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=1/method=lacerda_prune/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=1/method=lacerda_prune/metrics.csv
+    jobid: 677
+    reason: Missing output files: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=1/method=lacerda_prune/metrics.csv; Input files updated by another job: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=1/method=lacerda_prune/model.pkl
+    wildcards: regime=easy, d=10, num_cycles=5, density=0.8, samp_size=500, seed=1, method=lacerda_prune
+    resources: tmpdir=/tmp
+Select jobs to execute...
+Terminating processes on user request, this might take some time.
+RuleException:
+CalledProcessError in file "/home/fmfsa/Repositories/repare_cycle/src/expt/workflow/rules/synth.smk", line 77:
+Command 'set -euo pipefail;  /opt/miniconda3/bin/python /home/fmfsa/Repositories/repare_cycle/src/expt/workflow/.snakemake/scripts/tmpy9lscwr_.evaluate_synth.py' died with <Signals.SIGINT: 2>.
+[Wed Apr 29 11:39:18 2026]
+Error in rule synth_evaluate:
+    message: None
+    jobid: 314
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=2/dataset.npz, results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=2/method=lacerda/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=500/seed=2/method=lacerda/metrics.csv
+RuleException:
+CalledProcessError in file "/home/fmfsa/Repositories/repare_cycle/src/expt/workflow/rules/synth.smk", line 77:
+Command 'set -euo pipefail;  /opt/miniconda3/bin/python /home/fmfsa/Repositories/repare_cycle/src/expt/workflow/.snakemake/scripts/tmp4gdsuglr.evaluate_synth.py' died with <Signals.SIGINT: 2>.
+[Wed Apr 29 11:39:18 2026]
+Error in rule synth_evaluate:
+    message: None
+    jobid: 677
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=1/dataset.npz, results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=1/method=lacerda_prune/model.pkl
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.8/samp_size=500/seed=1/method=lacerda_prune/metrics.csv
+RuleException:
+CalledProcessError in file "/home/fmfsa/Repositories/repare_cycle/src/expt/workflow/rules/synth.smk", line 67:
+Command 'set -euo pipefail;  /opt/miniconda3/bin/python /home/fmfsa/Repositories/repare_cycle/src/expt/workflow/.snakemake/scripts/tmpbjz007ah.fit.py' died with <Signals.SIGINT: 2>.
+[Wed Apr 29 11:39:18 2026]
+Error in rule synth_fit:
+    message: None
+    jobid: 405
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=1000/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=1000/seed=0/method=lacerda_prune/model.pkl
+RuleException:
+CalledProcessError in file "/home/fmfsa/Repositories/repare_cycle/src/expt/workflow/rules/synth.smk", line 67:
+Command 'set -euo pipefail;  /opt/miniconda3/bin/python /home/fmfsa/Repositories/repare_cycle/src/expt/workflow/.snakemake/scripts/tmpr2vqicrh.fit.py' died with <Signals.SIGINT: 2>.
+[Wed Apr 29 11:39:18 2026]
+Error in rule synth_fit:
+    message: None
+    jobid: 429
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=1000/seed=0/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=1000/seed=0/method=lacerda_prune/model.pkl
+RuleException:
+CalledProcessError in file "/home/fmfsa/Repositories/repare_cycle/src/expt/workflow/rules/synth.smk", line 67:
+Command 'set -euo pipefail;  /opt/miniconda3/bin/python /home/fmfsa/Repositories/repare_cycle/src/expt/workflow/.snakemake/scripts/tmpnb7_lf41.fit.py' died with <Signals.SIGINT: 2>.
+[Wed Apr 29 11:39:18 2026]
+Error in rule synth_fit:
+    message: None
+    jobid: 427
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=500/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.5/samp_size=500/seed=2/method=lacerda_prune/model.pkl
+RuleException:
+CalledProcessError in file "/home/fmfsa/Repositories/repare_cycle/src/expt/workflow/rules/synth.smk", line 67:
+Command 'set -euo pipefail;  /opt/miniconda3/bin/python /home/fmfsa/Repositories/repare_cycle/src/expt/workflow/.snakemake/scripts/tmps_vt7ior.fit.py' died with <Signals.SIGINT: 2>.
+[Wed Apr 29 11:39:18 2026]
+Error in rule synth_fit:
+    message: None
+    jobid: 87
+    input: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=5/density=0.3/samp_size=100/seed=1/method=lacerda/model.pkl
+RuleException:
+CalledProcessError in file "/home/fmfsa/Repositories/repare_cycle/src/expt/workflow/rules/synth.smk", line 67:
+Command 'set -euo pipefail;  /opt/miniconda3/bin/python /home/fmfsa/Repositories/repare_cycle/src/expt/workflow/.snakemake/scripts/tmpovh5fg44.fit.py' died with <Signals.SIGINT: 2>.
+[Wed Apr 29 11:39:18 2026]
+Error in rule synth_fit:
+    message: None
+    jobid: 650
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=100/seed=2/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.8/samp_size=100/seed=2/method=lacerda_prune/model.pkl
+RuleException:
+CalledProcessError in file "/home/fmfsa/Repositories/repare_cycle/src/expt/workflow/rules/synth.smk", line 67:
+Command 'set -euo pipefail;  /opt/miniconda3/bin/python /home/fmfsa/Repositories/repare_cycle/src/expt/workflow/.snakemake/scripts/tmpwfhumswc.fit.py' died with <Signals.SIGINT: 2>.
+[Wed Apr 29 11:39:18 2026]
+Error in rule synth_fit:
+    message: None
+    jobid: 304
+    input: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=100/seed=1/dataset.npz
+    output: results/synth/regime=easy/d=10/num_cycles=4/density=0.5/samp_size=100/seed=1/method=lacerda/model.pkl
+Complete log(s): /home/fmfsa/Repositories/repare_cycle/src/expt/workflow/.snakemake/log/2026-04-29T113909.666460.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.
