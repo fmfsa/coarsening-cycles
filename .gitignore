@@ -15,3 +15,17 @@ devenv.local.nix
 # snakemake experiments
 /src/expt/.snakemake/
 /src/expt/results/
+/src/expt/workflow/.snakemake/
+/src/expt/workflow/results/
+
+# Claude Code session metadata
+.claude/
+
+# LaTeX build artefacts
+paper/main.aux
+paper/main.log
+paper/main.out
+paper/main.bbl
+paper/main.blg
+paper/main.toc
+paper/main.synctex.gz

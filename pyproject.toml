@@ -5,12 +5,10 @@ description = "Recursive partition refinement for causal discovery in directed g
 requires-python = ">=3.9"
 license = {text = "GPL-3.0-or-later"}
 authors = [
-    {name = "Alex Markham", email = "alex.markham@causal.dev"},
-    {name = "Francisco Madaleno", email = "fmfsa@dtu.dk"},
+    {name = "Anonymous"},
 ]
 maintainers = [
-    {name = "Alex Markham", email = "alex.markham@causal.dev"},
-    {name = "Francisco Madaleno", email = "fmfsa@dtu.dk"},
+    {name = "Anonymous"},
 ]
 keywords = [
     "causal-discovery",
