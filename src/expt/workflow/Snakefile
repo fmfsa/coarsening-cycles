@@ -7,3 +7,5 @@ rule all:
             "results/synth_main_regime={regime}_density={density}.pdf",
             regime=synth_regimes, density=synth_densities,
         ),
+        "results/synth_main_combined.pdf",
+        "results/scalability_disjointcycles.pdf",
