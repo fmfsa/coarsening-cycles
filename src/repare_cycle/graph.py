@@ -354,6 +354,8 @@ def random_cyclic_graph(
     density: float = 0.5,
     seed: int = 0,
     weight_range: tuple[float, float] = (0.25, 0.75),
+    target_rho: float | None = None,
+    intra_scc_density: float | None = None,
 ) -> tuple[nx.DiGraph, np.ndarray]:
     """Generate a random directed graph on *d* nodes with exactly *num_cycles*
     non-trivial SCCs.
@@ -371,7 +373,11 @@ def random_cyclic_graph(
        has at least 2 members.
     2. Within each group a directed Hamilton cycle is created (guaranteeing
        mutual reachability) plus extra random intra-SCC directed edges
-       controlled by *density*.
+       controlled by *intra_scc_density* (defaults to *density*).  Setting
+       *intra_scc_density* = 0 leaves each SCC as its Hamilton cycle, so
+       every directed simple cycle in the resulting graph is pairwise
+       vertex-disjoint — i.e., the disjoint-cycles assumption of Drton et
+       al. (2025) holds by construction.
     3. Between blocks (SCCs and singletons) DAG-respecting directed edges
        are added with probability *density*.
 
@@ -384,10 +390,14 @@ def random_cyclic_graph(
     num_cycles : int
         Number of non-trivial SCCs (cycles).  Each SCC will have ≥ 2 nodes.
     density : float
-        Controls both intra-SCC extra edges and inter-block edge probability.
+        Inter-block edge probability; also the default for intra-SCC chord
+        edges when *intra_scc_density* is None.
     seed : int
     weight_range : (w_min, w_max)
         Absolute-value range for edge weights before sign randomisation.
+    intra_scc_density : float | None
+        Probability of each intra-SCC chord edge (on top of the Hamilton
+        cycle).  If None, falls back to *density*.
 
     Returns
     -------
@@ -405,6 +415,7 @@ def random_cyclic_graph(
 
     w_min, w_max = weight_range
     weights = np.zeros((d, d))
+    chord_p = density if intra_scc_density is None else intra_scc_density
 
     # ── 1. Partition nodes into SCC groups + singletons ──────────────
     if num_cycles == 0:
@@ -446,11 +457,12 @@ def random_cyclic_graph(
             u, v = nodes[i], nodes[(i + 1) % m]
             w = rng.uniform(w_min, w_max) * rng.choice([-1, 1])
             weights[u, v] = w
-        # Extra intra-SCC edges controlled by density
-        for u in nodes:
-            for v in nodes:
-                if u != v and weights[u, v] == 0 and rng.random() < density:
-                    weights[u, v] = rng.uniform(w_min, w_max) * rng.choice([-1, 1])
+        # Extra intra-SCC edges controlled by chord_p
+        if chord_p > 0.0:
+            for u in nodes:
+                for v in nodes:
+                    if u != v and weights[u, v] == 0 and rng.random() < chord_p:
+                        weights[u, v] = rng.uniform(w_min, w_max) * rng.choice([-1, 1])
 
     # ── 3. Inter-block DAG edges ─────────────────────────────────────
     all_blocks = list(range(num_cycles + n_singletons))
@@ -470,9 +482,18 @@ def random_cyclic_graph(
                             rng.uniform(w_min, w_max) * rng.choice([-1, 1])
                         )
 
-    # ── 4. Stability: spectral radius < 1 ────────────────────────────
+    # ── 4. Spectral-radius rescaling ─────────────────────────────────
+    # By default: enforce stability ρ(B) < 1 (sampleable as a stationary
+    # equilibrium SEM via X = (I-B)^{-1} E with the Neumann series convergent).
+    # If `target_rho` is given, rescale to exactly that value — including
+    # ρ > 1 ("unstable" regime). Sampling from an unstable B requires
+    # `CyclicLinearSEM(..., allow_unstable=True)`; the math (X = E (I-B)^{-1})
+    # is well-defined as long as (I-B) is invertible, which it generically is.
     spectral_radius = float(np.max(np.abs(np.linalg.eigvals(weights))))
-    if spectral_radius >= 1.0:
+    if target_rho is not None:
+        if spectral_radius > 1e-8:
+            weights = weights * (target_rho / spectral_radius)
+    elif spectral_radius >= 1.0:
         weights = weights / (spectral_radius + 0.1)
 
     # ── 5. Build NetworkX graph ───────────────────────────────────────
@@ -517,22 +538,24 @@ class CyclicLinearSEM:
         variances: tuple[float, float] = (0.5, 2.0),
         rng: np.random.Generator | None = None,
         noise_dist: str = "laplace",
+        allow_unstable: bool = False,
     ):
         """
         Parameters
         ----------
         weights : np.ndarray, shape (n, n)
             Weight matrix. weights[i, j] = weight of edge i → j.
-        means : (lo, hi)
-            Range for sampling per-node noise means uniformly.
-        variances : (lo, hi)
-            Range for sampling per-node noise variances uniformly.
-        rng : np.random.Generator, optional
-        noise_dist : {"laplace", "gaussian", "uniform", "exponential"}
-            Marginal distribution for each node's noise term.
-            "laplace" (default) is non-Gaussian and works well with FastICA.
-            "gaussian" is supported for the intervention-determined approach
-            but ICA cannot identify Gaussian mixing matrices.
+        means, variances, rng, noise_dist : see class docstring.
+        allow_unstable : bool
+            If False (default), raise on ρ(B) ≥ 1. If True, bypass the
+            stability check and sample from X = E (I-B)^{-1} as long as
+            (I-B) is invertible. The equilibrium SEM X = BX + E is
+            mathematically well-defined for any invertible (I-B); the
+            ρ < 1 convention is only required for the *temporal*
+            interpretation X_t = BX_{t-1} + E_t to be stationary.
+            Used by the "unstable" regime in the paper to demonstrate
+            condensation identifiability when the data-generating B is
+            outside Lacerda's stability-filter target.
         """
         if noise_dist not in self._NOISE_DISTS:
             raise ValueError(
@@ -545,11 +568,19 @@ class CyclicLinearSEM:
         self.rng = rng if rng is not None else np.random.default_rng(0)
 
         spectral_radius = float(np.max(np.abs(np.linalg.eigvals(self.weights))))
-        if spectral_radius >= 1.0:
+        self.spectral_radius = spectral_radius
+        if not allow_unstable and spectral_radius >= 1.0:
             raise ValueError(
                 f"Spectral radius {spectral_radius:.4f} >= 1. "
                 "The cyclic SEM is unstable. Use random_directed_graph() which "
-                "automatically scales weights to ensure stability."
+                "automatically scales weights to ensure stability, or pass "
+                "allow_unstable=True to bypass this check."
+            )
+        # Even with allow_unstable, (I-B) must be invertible.
+        if allow_unstable and abs(spectral_radius - 1.0) < 1e-8:
+            raise ValueError(
+                f"Spectral radius {spectral_radius:.4f} is at the boundary; "
+                "(I-B) is (near-)singular and cannot be inverted."
             )
 
         # Precompute (I - B)^{-1} for efficient sampling

@@ -4,7 +4,8 @@ Covers:
 - Tarjan's SCC algorithm correctness
 - CyclicLinearSEM sampling and intervention propagation
 - random_directed_graph stability guarantee
-- PartitionDgModelIvn: soft-only enforcement, basic fitting on cyclic chains
+- random_cyclic_graph / random_multi_scc_graph structure
+- LiNG-D wrapper: SCC and condensation recovery
 """
 
 import networkx as nx
@@ -12,7 +13,6 @@ import numpy as np
 import pytest
 
 from repare_cycle.graph import CyclicLinearSEM, random_directed_graph, tarjan_scc
-from repare_cycle.repare_cycle import PartitionDgModelIvn, _get_totally_ordered_partition
 
 
 # ---------------------------------------------------------------------------
@@ -67,14 +67,12 @@ def test_cyclic_sem_dag_matches_expected():
     rng = np.random.default_rng(0)
     model = CyclicLinearSEM(weights, means=(0.0, 0.0), variances=(1.0, 1.0), rng=rng)
     data = model.sample(100_000)
-    # Covariance X_0, X_1 should be w * Var(X_0)
     cov = np.cov(data.T)
     assert abs(cov[0, 1] - w) < 0.05
 
 
 def test_cyclic_sem_stability_error():
     """Spectral radius >= 1 raises ValueError (requires a cyclic matrix)."""
-    # 2-cycle with weights 1.1: eigenvalues = ±1.1, spectral radius = 1.1 >= 1
     weights = np.array([[0.0, 1.1], [1.1, 0.0]])
     with pytest.raises(ValueError, match="Spectral radius"):
         CyclicLinearSEM(weights)
@@ -86,7 +84,6 @@ def test_cyclic_sem_soft_intervention_changes_distribution():
     model = CyclicLinearSEM(weights, means=(0.0, 0.0), variances=(1.0, 1.0), rng=np.random.default_rng(1))
     obs = model.sample(5000)
     ivn = model.sample(5000, shift_interventions={0: (5.0, 0.1)})
-    # Both X_0 and X_1 should shift
     assert ivn[:, 0].mean() > obs[:, 0].mean() + 3
     assert ivn[:, 1].mean() > obs[:, 1].mean() + 1
 
@@ -98,7 +95,7 @@ def test_cyclic_sem_2cycle_intervention_propagates():
     obs = model.sample(10_000)
     ivn = model.sample(10_000, shift_interventions={0: (10.0, 0.1)})
     assert ivn[:, 0].mean() > obs[:, 0].mean() + 3
-    assert ivn[:, 1].mean() > obs[:, 1].mean() + 1  # propagates through cycle
+    assert ivn[:, 1].mean() > obs[:, 1].mean() + 1
 
 
 # ---------------------------------------------------------------------------
@@ -119,118 +116,7 @@ def test_random_directed_graph_er_has_cycles():
     _, weights = random_directed_graph(10, 0.5, graph_type="er", seed=7)
     g = nx.DiGraph(weights.astype(bool))
     sccs = list(nx.strongly_connected_components(g))
-    # Not all SCCs are singletons (cycles exist)
     assert any(len(scc) > 1 for scc in sccs)
-
-
-# ---------------------------------------------------------------------------
-# PartitionDgModelIvn: hard intervention rejection
-# ---------------------------------------------------------------------------
-
-
-def test_hard_intervention_rejected():
-    """Hard interventions raise ValueError."""
-    weights = np.array([[0.0, 0.5], [0.0, 0.0]])
-    model_sem = CyclicLinearSEM(weights, rng=np.random.default_rng(0))
-    obs = model_sem.sample(200)
-    ivn = model_sem.sample(200, shift_interventions={0: (2.0, 1.0)})
-
-    data_dict = {
-        "obs": (obs, set(), "obs"),
-        "env1": (ivn, {0}, "hard"),  # <- should be rejected
-    }
-    model = PartitionDgModelIvn()
-    with pytest.raises(ValueError, match="Hard interventions"):
-        model.fit(data_dict)
-
-
-# ---------------------------------------------------------------------------
-# PartitionDgModelIvn: fitting on a simple chain (DAG as special case)
-# ---------------------------------------------------------------------------
-
-
-def test_fit_chain_gaussian():
-    """Chain 0→1→2 with soft interventions: should recover three singleton blocks."""
-    n_samples = 500
-    rng = np.random.default_rng(10)
-
-    def sample(shift_node=None, shift=5.0):
-        x0 = rng.normal(size=n_samples)
-        if shift_node == 0:
-            x0 += shift
-        x1 = 0.7 * x0 + rng.normal(scale=0.4, size=n_samples)
-        if shift_node == 1:
-            x1 = rng.normal(loc=shift, size=n_samples)
-        x2 = 0.6 * x1 + rng.normal(scale=0.4, size=n_samples)
-        if shift_node == 2:
-            x2 += shift
-        return np.column_stack([x0, x1, x2])
-
-    data_dict = {
-        "obs": (sample(), set(), "obs"),
-        "ivn0": (sample(shift_node=0), {0}, "soft"),
-        "ivn1": (sample(shift_node=1), {1}, "soft"),
-        "ivn2": (sample(shift_node=2), {2}, "soft"),
-    }
-
-    model = PartitionDgModelIvn()
-    model.fit(data_dict, assume="gaussian")
-    assert set(model.dag.nodes) == {(0,), (1,), (2,)}
-
-
-# ---------------------------------------------------------------------------
-# PartitionDgModelIvn: SCC grouping
-# ---------------------------------------------------------------------------
-
-
-def test_scc_nodes_grouped_together():
-    """Nodes in a 2-cycle should land in the same partition block."""
-    # 2-cycle: 0⇔1, downstream node 2
-    weights = np.array([
-        [0.0, 0.4, 0.0],
-        [0.4, 0.0, 0.0],
-        [0.0, 0.5, 0.0],
-    ])
-    model_sem = CyclicLinearSEM(weights, means=(0.0, 0.0), variances=(0.8, 1.2), rng=np.random.default_rng(3))
-
-    n_samples = 2000
-    obs = model_sem.sample(n_samples)
-    # Soft intervention on node 2 (downstream, doesn't affect the cycle)
-    ivn2 = model_sem.sample(n_samples, shift_interventions={2: (5.0, 1.0)})
-
-    data_dict = {
-        "obs": (obs, set(), "obs"),
-        "ivn2": (ivn2, {2}, "soft"),
-    }
-    model = PartitionDgModelIvn()
-    model.fit(data_dict, assume="gaussian")
-
-    # Nodes 0 and 1 are in the same SCC → should be in the same partition block
-    partition_dict = {}
-    for part in model.dag.nodes:
-        for node in part:
-            partition_dict[node] = part
-    assert partition_dict[0] == partition_dict[1], (
-        f"Nodes 0 and 1 should be in the same block. Got: {partition_dict}"
-    )
-
-
-# ---------------------------------------------------------------------------
-# _get_totally_ordered_partition
-# ---------------------------------------------------------------------------
-
-
-def test_totally_ordered_partition_basic():
-    """Three variables: first two changed under ivn1, third only under ivn2."""
-    masks = {
-        "ivn1": np.array([True, True, False]),
-        "ivn2": np.array([False, False, True]),
-    }
-    partition = _get_totally_ordered_partition(masks)
-    # Should split into [{0,1}, {2}] or [{2}, {0,1}]
-    sets = [frozenset(p) for p in partition]
-    assert frozenset({0, 1}) in sets
-    assert frozenset({2}) in sets
 
 
 # ---------------------------------------------------------------------------
@@ -246,33 +132,15 @@ def test_multi_scc_graph_structure():
         n_sccs=3, scc_sizes=3, n_singletons=2, inter_density=0.3, seed=42,
     )
     n = weights.shape[0]
-    assert n == 3 * 3 + 2  # 11 nodes
+    assert n == 3 * 3 + 2
 
     sccs = list(nx.strongly_connected_components(graph))
     nontrivial = [s for s in sccs if len(s) > 1]
     singletons = [s for s in sccs if len(s) == 1]
     assert len(nontrivial) == 3
     assert len(singletons) == 2
-    # Each non-trivial SCC should have exactly 3 nodes
     for scc in nontrivial:
         assert len(scc) == 3
-
-
-def test_multi_scc_oica_recovery():
-    """OICA correctly identifies multiple distinct SCCs from observational data."""
-    from repare_cycle.graph import random_multi_scc_graph, CyclicLinearSEM
-    from repare_cycle.oica import oica_scc_partition
-
-    graph, weights = random_multi_scc_graph(
-        n_sccs=3, scc_sizes=3, n_singletons=0, inter_density=0.3, seed=42,
-    )
-    true_sccs = {frozenset(s) for s in nx.strongly_connected_components(graph)}
-
-    sem = CyclicLinearSEM(weights, rng=np.random.default_rng(42), noise_dist="laplace")
-    obs = sem.sample(10000)
-
-    est_sccs = set(oica_scc_partition(obs, threshold=0.1, random_state=42))
-    assert est_sccs == true_sccs
 
 
 # ---------------------------------------------------------------------------
@@ -287,7 +155,6 @@ def test_random_cyclic_graph_dag():
     graph, weights = random_cyclic_graph(d=10, num_cycles=0, density=0.5, seed=0)
     assert weights.shape == (10, 10)
     sccs = list(nx.strongly_connected_components(graph))
-    # All SCCs should be singletons
     for scc in sccs:
         assert len(scc) == 1
 
@@ -306,10 +173,15 @@ def test_random_cyclic_graph_exact_cycles():
         )
 
 
-def test_random_cyclic_graph_oica_recovery():
-    """OICA recovers the SCC partition from random_cyclic_graph with enough data."""
-    from repare_cycle.graph import random_cyclic_graph, CyclicLinearSEM
-    from repare_cycle.oica import oica_scc_partition
+# ---------------------------------------------------------------------------
+# LiNG-D: SCC recovery on a known-stable cyclic SEM
+# ---------------------------------------------------------------------------
+
+
+def test_lingd_recovers_scc_partition():
+    """LiNG-D + Tarjan recovers the SCC partition from cyclic data."""
+    from repare_cycle.graph import random_cyclic_graph
+    from repare_cycle.lingd import run_lingd
 
     graph, weights = random_cyclic_graph(d=10, num_cycles=2, density=0.5, seed=7)
     true_sccs = {frozenset(s) for s in nx.strongly_connected_components(graph)}
@@ -317,41 +189,119 @@ def test_random_cyclic_graph_oica_recovery():
     sem = CyclicLinearSEM(weights, rng=np.random.default_rng(7), noise_dist="laplace")
     obs = sem.sample(10000)
 
-    est_sccs = set(oica_scc_partition(obs, threshold=0.1, random_state=7))
+    result = run_lingd(obs, threshold_b=0.1, threshold_w=0.1)
+    B = result["B_chosen"]
+
+    g = nx.DiGraph()
+    g.add_nodes_from(range(B.shape[0]))
+    rows, cols = np.where(np.abs(B) > 0)
+    for i, j in zip(rows.tolist(), cols.tolist()):
+        if i != j:
+            g.add_edge(int(j), int(i))
+    est_sccs = {frozenset(s) for s in nx.strongly_connected_components(g)}
+
     assert est_sccs == true_sccs
 
 
 # ---------------------------------------------------------------------------
-# PartitionDgModelOICA: end-to-end + partition-equality with raw OICA
+# LiNG-D: Lacerda Example 1 — SCC + condensation recovery
 # ---------------------------------------------------------------------------
 
 
-def test_oica_repare_partition_matches_raw_oica():
-    """`PartitionDgModelOICA.fit` must yield the same SCC partition as
-    `oica_scc_partition` on the same data + threshold + random_state.
+def test_lingd_recovers_lacerda_example_1():
+    """LiNG-D + Tarjan recovers the SCC partition and condensation of Lacerda Example 1.
 
-    Both consume support(Â) → Tarjan, so the final `dag.nodes` (from the
-    RePaRe loop) must equal the raw OICA partition. If this drifts, the
-    RePaRe loop is mutating the partition — which would break the
-    apples-to-apples comparison between `oica_scc_repare` and
-    `oica_no_repare` in the synth experiments.
+    At n=5000, seed=0 the algorithm reliably picks a stable representative
+    whose SCC partition matches the ground truth {x1}, {x2,x3,x4}, {x5} and
+    whose condensation edges ({x1}→{x2,x3,x4}, {x2,x3,x4}→{x5}) are exact.
     """
-    from repare_cycle.graph import random_cyclic_graph, CyclicLinearSEM
-    from repare_cycle.oica import oica_scc_partition
-    from repare_cycle.repare_cycle import PartitionDgModelOICA
+    from repare_cycle.examples import get
+    from repare_cycle.lingd import run_lingd
 
-    graph, weights = random_cyclic_graph(d=10, num_cycles=2, density=0.5, seed=7)
-    sem = CyclicLinearSEM(weights, rng=np.random.default_rng(7), noise_dist="laplace")
-    obs = sem.sample(10_000)
+    ex = get("lacerda_example_1")
+    sem = CyclicLinearSEM(ex.B.T, rng=np.random.default_rng(0), noise_dist="laplace")
+    obs = sem.sample(5_000)
 
-    raw_sccs = set(oica_scc_partition(obs, threshold=0.1, random_state=7))
+    result = run_lingd(obs, threshold_b=0.1, threshold_w=0.1)
+    assert not result["failed"], "FastICA failed on Example 1 data"
 
-    model = PartitionDgModelOICA()
-    model.fit(obs, beta=0.01, assume="hsic", threshold=0.1, random_state=7)
-    repare_blocks = {frozenset(part) for part in model.dag.nodes}
+    B = result["B_chosen"]
 
-    assert repare_blocks == raw_sccs, (
-        f"RePaRe loop changed the partition.\n"
-        f"  raw OICA: {sorted(map(sorted, raw_sccs))}\n"
-        f"  RePaRe:   {sorted(map(sorted, repare_blocks))}"
+    g_hat = nx.DiGraph()
+    g_hat.add_nodes_from(range(ex.d))
+    for i, j in zip(*np.nonzero(B)):
+        if i != j:
+            g_hat.add_edge(int(j), int(i))
+
+    # SCC partition
+    est_sccs = {frozenset(s) for s in nx.strongly_connected_components(g_hat)}
+    true_sccs = {frozenset(s) for s in ex.true_sccs}
+    assert est_sccs == true_sccs, (
+        f"SCC mismatch.\n  expected: {true_sccs}\n  got:      {est_sccs}"
+    )
+
+    # Condensation edges
+    cond_hat = nx.condensation(g_hat)
+    members_hat = {
+        k: frozenset(int(v) for v in cond_hat.nodes[k]["members"])
+        for k in cond_hat.nodes
+    }
+    hat_cond_e = {(members_hat[u], members_hat[v]) for u, v in cond_hat.edges}
+    true_cond_e = set(ex.true_condensation.edges)
+    assert hat_cond_e == true_cond_e, (
+        f"Condensation edge mismatch.\n  expected: {true_cond_e}\n  got: {hat_cond_e}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# LiNG-D: hungarian_any pick_strategy yields the same condensation
+# ---------------------------------------------------------------------------
+
+
+def _condensation_signature(B: np.ndarray) -> tuple[frozenset, frozenset]:
+    """Return (SCC partition, condensation edge set) for thresholded B."""
+    g = nx.DiGraph()
+    g.add_nodes_from(range(B.shape[0]))
+    for i, j in zip(*np.nonzero(B)):
+        if i != j:
+            g.add_edge(int(j), int(i))
+    sccs = frozenset(frozenset(s) for s in nx.strongly_connected_components(g))
+    cond = nx.condensation(g)
+    members = {
+        k: frozenset(int(v) for v in cond.nodes[k]["members"]) for k in cond.nodes
+    }
+    edges = frozenset((members[u], members[v]) for u, v in cond.edges)
+    return sccs, edges
+
+
+def test_hungarian_any_matches_first_stable_condensation():
+    """``pick_strategy='hungarian_any'`` recovers the same condensation as the
+    default ``first_stable`` pick on the Lacerda Example 1.
+
+    By Theorem 1 of the paper, every admissible representative of the
+    distributional equivalence class shares the same condensation; this test
+    verifies that the two pick strategies are interchangeable for the
+    condensation-recovery target.
+    """
+    from repare_cycle.examples import get
+    from repare_cycle.lingd import run_lingd
+
+    ex = get("lacerda_example_1")
+    sem = CyclicLinearSEM(ex.B.T, rng=np.random.default_rng(0), noise_dist="laplace")
+    obs = sem.sample(5_000)
+
+    res_fs = run_lingd(obs, threshold_b=0.1, threshold_w=0.1, pick_strategy="first_stable")
+    res_hu = run_lingd(obs, threshold_b=0.1, threshold_w=0.1, pick_strategy="hungarian_any")
+
+    assert not res_fs["failed"] and not res_hu["failed"]
+    assert res_hu["n_perms"] == 1, "Hungarian path should evaluate exactly one permutation"
+
+    sccs_fs, edges_fs = _condensation_signature(res_fs["B_chosen"])
+    sccs_hu, edges_hu = _condensation_signature(res_hu["B_chosen"])
+
+    assert sccs_fs == sccs_hu, (
+        f"SCC partitions differ.\n  first_stable: {sccs_fs}\n  hungarian:    {sccs_hu}"
+    )
+    assert edges_fs == edges_hu, (
+        f"Condensation edges differ.\n  first_stable: {edges_fs}\n  hungarian:    {edges_hu}"
     )

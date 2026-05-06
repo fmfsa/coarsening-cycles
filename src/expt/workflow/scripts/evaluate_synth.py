@@ -1,18 +1,28 @@
-"""Evaluate a fitted PartitionDgModelOICA on the main synthetic experiment.
+"""Evaluate a fitted Tetrad-LingD model on the main synthetic experiment.
 
 Ground truth: the SCC partition (Tarjan's algorithm on the true DG).
 
 Metrics saved:
-  ari_scc          — ARI vs SCC partition (partition quality)
-  precision        — edge precision vs true condensation edges
-  recall           — edge recall
-  fscore           — edge F-score
-  runtime_sec      — fitting time
-  num_sccs         — number of SCCs in the true DG
-  max_scc_size     — size of the largest SCC
-  num_nontrivial   — number of SCCs with size > 1
-  frac_nontrivial  — fraction of nodes in non-trivial SCCs
-  has_cycles       — 1 if any non-trivial SCC exists
+  ari_scc            — ARI vs SCC partition (partition quality).
+  fscore             — Cluster-DAG F1. Predicted variable edges are
+                       projected onto the TRUE SCC partition; we compare
+                       the resulting set of (src_scc, dst_scc) pairs
+                       to the true cluster-DAG edge set. This is the
+                       *identifiable target* in the paper's claim
+                       (Lacerda Theorem 4): every member of the
+                       distributional equivalence class shares the
+                       same condensation, so this metric should → 1
+                       across pick strategies.
+  var_*              — Variable-level (full DAG) F1, precision, recall,
+                       SHD. Not identifiable in the paper's claim —
+                       saturates < 1 for `random_admissible`.
+  inter_scc_*        — Variable-pair-level inter-SCC F1 (diagnostic).
+                       Penalises x1→x2 vs x1→x4 even when both are
+                       valid recoveries of the same cluster-DAG edge
+                       {x1}→{x2,x3,x4}. Kept for diagnostic value.
+  runtime_sec        — fitting time.
+  num_sccs / max_scc_size / num_nontrivial / frac_nontrivial /
+  has_cycles         — true-graph SCC structure summary.
 """
 
 import pickle
@@ -28,6 +38,10 @@ samp_size = int(snakemake.wildcards.samp_size)
 seed = int(snakemake.wildcards.seed)
 d = int(snakemake.wildcards.d)
 regime = getattr(snakemake.wildcards, "regime", "easy")
+# `threshold` wildcard exists only in the threshold-sensitivity grid (App. C.2);
+# default to NaN elsewhere so the row is still well-formed in the merged CSV.
+_thr_wc = getattr(snakemake.wildcards, "threshold", None)
+threshold_used = float(_thr_wc) if _thr_wc is not None else float("nan")
 
 model = pickle.load(open(snakemake.input.model, "rb"))
 data = np.load(snakemake.input.data, allow_pickle=True)
@@ -65,53 +79,80 @@ def _ari_robust(a, b):
 ari_scc = _ari_robust(scc_labels_true, est_labels)
 
 # -------------------------------------------------------------------------
-# Edge F-score vs true condensation
+# Variable → true-SCC label map. Used by both the cluster-DAG F1 and the
+# inter-SCC variable-pair F1 below.
 # -------------------------------------------------------------------------
-def _is_adj(pa, ch):
-    return any(true_dg.has_edge(u, v) for u in pa for v in ch)
+var_to_true_scc = np.empty(num_nodes, dtype=int)
+for label, scc in enumerate(true_sccs):
+    for v in scc:
+        var_to_true_scc[v] = label
 
-
-true_edges_on_est = nx.create_empty_copy(model.dag)
-node_list = list(model.dag.nodes)
-# Check all ordered pairs — the partition DAG node iteration order is not
-# guaranteed to be topological (e.g. nx.strongly_connected_components yields
-# SCCs in reverse-topological order). Iterating only forward in `node_list`
-# would miss every true edge when the order is reversed.
-for pa in node_list:
-    for ch in node_list:
-        if pa is ch:
-            continue
-        if _is_adj(pa, ch):
-            true_edges_on_est.add_edge(pa, ch)
-
-tp = sum(1 for e in model.dag.edges if e in true_edges_on_est.edges)
-n_pred = len(model.dag.edges)
-n_true = len(true_edges_on_est.edges)
-
-# Edge case handling: both empty is perfect match; one empty is total failure
-if n_pred == 0 and n_true == 0:
-    # Both empty: no inter-SCC edges predicted and none exist (perfect match)
-    precision = recall = 1.0
-elif n_pred == 0 or n_true == 0:
-    # One empty, one not: complete failure to recover inter-SCC structure
-    precision = recall = 0.0
-else:
-    # Normal case: compute standard precision/recall
-    precision = tp / n_pred
-    recall = tp / n_true
-
-fscore = (2 * precision * recall / (precision + recall)
-          if (precision + recall) > 0 else 0.0)
-
-# -------------------------------------------------------------------------
-# Variable-level (full DAG) metrics — only computed when the method exposes
-# a full variable-level adjacency. `lacerda` saves `full_adj_ij` in i→j
-# convention.
-# -------------------------------------------------------------------------
+# True variable-level adjacency, i→j convention.
 true_adj_ij = (weights != 0).astype(int)
 np.fill_diagonal(true_adj_ij, 0)
 
+# -------------------------------------------------------------------------
+# Cluster-DAG F1 — projects predicted variable edges to the TRUE SCC
+# partition, then computes F1 against the true cluster-DAG edge set.
+#
+# This is the metric that directly tests Lacerda Theorem 4: any member of
+# the distributional equivalence class has the same condensation, so this
+# metric should → 1 regardless of which member the algorithm picks.
+#
+# Projecting onto the TRUE partition (rather than the estimated one) keeps
+# the metric well-defined when the estimate collapses to a single SCC at
+# small n: in that case `pred_cluster_edges` is empty, the truth has
+# multiple cluster edges, and recall correctly drops to 0 (instead of the
+# old vacuous 1.0 from "both empty = perfect match").
+# -------------------------------------------------------------------------
+true_cluster_edges = set()
+for u, v in zip(*np.nonzero(true_adj_ij)):
+    su, sv = int(var_to_true_scc[u]), int(var_to_true_scc[v])
+    if su != sv:
+        true_cluster_edges.add((su, sv))
+
 full_adj = getattr(model, "full_adj_ij", None)
+if full_adj is not None:
+    pred_var = (np.asarray(full_adj) > 0).astype(int)
+    np.fill_diagonal(pred_var, 0)
+    pred_cluster_edges = set()
+    for u, v in zip(*np.nonzero(pred_var)):
+        su, sv = int(var_to_true_scc[u]), int(var_to_true_scc[v])
+        if su != sv:
+            pred_cluster_edges.add((su, sv))
+else:
+    pred_cluster_edges = set()
+
+tp = len(pred_cluster_edges & true_cluster_edges)
+n_pred = len(pred_cluster_edges)
+n_true = len(true_cluster_edges)
+
+if n_pred == 0 and n_true == 0:
+    # Truth is one big SCC and prediction agrees — vacuously perfect.
+    fscore = 1.0
+elif n_pred == 0 or n_true == 0:
+    fscore = 0.0
+else:
+    precision_c = tp / n_pred
+    recall_c = tp / n_true
+    fscore = (2 * precision_c * recall_c / (precision_c + recall_c)
+              if (precision_c + recall_c) > 0 else 0.0)
+
+# -------------------------------------------------------------------------
+# Variable-level (full DAG) metrics — only when `full_adj_ij` exists.
+# `lacerda` and `lacerda_rnd` save it; other methods would not.
+#
+# Two flavours:
+#   * `var_*`: F1 over ALL variable edges (i, j). Penalises both
+#     intra-SCC structural errors and inter-SCC variable shifts —
+#     the strongest "everything must be exactly right" metric.
+#   * `inter_scc_*`: F1 restricted to variable pairs (i, j) that
+#     cross true-SCC boundaries. Penalises x1→x2 vs x1→x4 even when
+#     they project to the same cluster-DAG edge — kept as a
+#     diagnostic showing how variable-level inter-SCC edges *shift*
+#     across equivalence-class members. The paper's identifiability
+#     target is `fscore` (cluster-DAG F1) above, not this.
+# -------------------------------------------------------------------------
 if full_adj is None:
     var_precision = float("nan")
     var_recall = float("nan")
@@ -121,11 +162,9 @@ if full_adj is None:
     inter_scc_recall = float("nan")
     inter_scc_fscore = float("nan")
 else:
-    pred = (np.asarray(full_adj) > 0).astype(int)
-    np.fill_diagonal(pred, 0)
-    tp_v = int(np.sum((pred == 1) & (true_adj_ij == 1)))
-    fp_v = int(np.sum((pred == 1) & (true_adj_ij == 0)))
-    fn_v = int(np.sum((pred == 0) & (true_adj_ij == 1)))
+    tp_v = int(np.sum((pred_var == 1) & (true_adj_ij == 1)))
+    fp_v = int(np.sum((pred_var == 1) & (true_adj_ij == 0)))
+    fn_v = int(np.sum((pred_var == 0) & (true_adj_ij == 1)))
     var_precision = tp_v / (tp_v + fp_v) if (tp_v + fp_v) > 0 else 1.0
     var_recall = tp_v / (tp_v + fn_v) if (tp_v + fn_v) > 0 else 1.0
     var_fscore = (
@@ -133,21 +172,11 @@ else:
         if (var_precision + var_recall) > 0 else 0.0
     )
     # Structural Hamming Distance (directed): missing + extra + reversed.
-    # Counted as: edges in exactly one of {pred, true} plus reversed pairs.
-    diff = pred - true_adj_ij
+    diff = pred_var - true_adj_ij
     var_shd = int(np.sum(np.abs(diff)))
 
-    # Inter-(true-SCC) F-score — the identifiable target from observational
-    # data. Mask out intra-true-SCC pairs (i, j) since within-SCC structure
-    # is not identifiable. This is the metric where the paper's claim lives:
-    # methods that recover the SCC partition + inter-block edges should hit
-    # F = 1; Lacerda (which misidentifies SCCs from noisy B̂) should not.
-    var_to_true_scc = np.empty(num_nodes, dtype=int)
-    for label, scc in enumerate(true_sccs):
-        for v in scc:
-            var_to_true_scc[v] = label
     inter_mask = var_to_true_scc[:, None] != var_to_true_scc[None, :]
-    pred_inter = pred & inter_mask
+    pred_inter = pred_var & inter_mask
     true_inter = true_adj_ij & inter_mask
     tp_i = int(np.sum((pred_inter == 1) & (true_inter == 1)))
     fp_i = int(np.sum((pred_inter == 1) & (true_inter == 0)))
@@ -169,9 +198,8 @@ results = {
     "seed": seed,
     "d": d,
     "num_nodes": num_nodes,
+    "threshold": threshold_used,
     "ari_scc": ari_scc,
-    "precision": precision,
-    "recall": recall,
     "fscore": fscore,
     "var_precision": var_precision,
     "var_recall": var_recall,

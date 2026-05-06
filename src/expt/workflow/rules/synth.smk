@@ -30,16 +30,50 @@ scal_methods     = ["lacerda", "disjointcycles"]
 scal_regime      = "hard"
 scal_density     = 0.5
 scal_num_cycles  = 10                    # k = 10 SCCs, fixed
-scal_d           = [20, 50, 100, 500]
-scal_samp_sizes  = [50, 100, 500, 1000, 5000]
+scal_d           = [20, 50, 100]#, 500]
+scal_samp_sizes  = [50, 100, 500, 1000, 5000, 10000, 50000, 100000]
 scal_seeds       = range(10)
+
+# (C) Strict disjoint-cycles micro grid (d=20, κ=5).
+# Each SCC is a single Hamilton cycle (no intra-SCC chord edges), so every
+# directed simple cycle is pairwise vertex-disjoint by construction —
+# the regime where Drton et al.'s assumption holds exactly. The (d, κ)
+# pair is unused by the other two grids, so wildcard-driven dispatch
+# below is collision-free.
+disjoint_methods    = ["lacerda", "disjointcycles"]
+disjoint_regime     = "hard"
+disjoint_density    = 0.5
+disjoint_d          = 20
+disjoint_num_cycles = 5
+disjoint_samp_sizes = [100, 500, 1000, 5000, 10000, 50000, 100000]
+disjoint_seeds      = range(10)
+
+
+def _is_scal_cell(wc) -> bool:
+    return int(wc.num_cycles) == 10
+
+
+def _is_disjoint_cell(wc) -> bool:
+    return int(wc.d) == 20 and int(wc.num_cycles) == 5
 
 
 rule synth_generate:
     output:
         synth_data_path + "dataset.npz",
     params:
-        noise_dist="laplace",
+        # Main d=10 grid uses Laplace (symmetric, non-Gaussian — fine for
+        # ICA-LiNG-D). The scalability and disjoint-micro grids need
+        # ASYMMETRIC noise because disjointCycles' tests rely on non-zero
+        # higher-order cumulants; Laplace has zero third moment and
+        # silently fails. Exponential is non-Gaussian + skewed, so both
+        # methods can exploit it on the same data.
+        noise_dist=lambda wc: (
+            "exponential" if _is_scal_cell(wc) or _is_disjoint_cell(wc)
+            else "laplace"
+        ),
+        # Disjoint-micro grid suppresses intra-SCC chord edges; every
+        # other grid keeps the legacy behaviour (chord prob = density).
+        intra_scc_density=lambda wc: 0.0 if _is_disjoint_cell(wc) else None,
     script:
         "../scripts/generate_synth.py"
 
@@ -53,7 +87,22 @@ rule synth_fit:
         threshold=0.1,
         max_iter=10000,
         random_state=0,
-        pick_strategy=lambda wc: "random_admissible" if wc.method == "lacerda_rnd" else "first_stable",
+        # Pick-strategy dispatch:
+        #   lacerda_rnd       — uniform over equivalence class (used by §5.2 figure
+        #                       to expose the variable-level identifiability gap).
+        #   lacerda @ k=10    — scalability grid. Use hungarian_any: O(d³) fast
+        #                       path that returns ONE admissible representative,
+        #                       which is sufficient because Theorem 1 makes the
+        #                       condensation (= what ARI/F1 measure) invariant
+        #                       across the equivalence class. N-rooks enumeration
+        #                       blows up combinatorially at d≥50.
+        #   lacerda @ k≠10    — d=10 main grid. Keep first_stable (cheap at d=10
+        #                       and supports the §5.2 stable/unstable narrative).
+        pick_strategy=lambda wc: (
+            "random_admissible" if wc.method == "lacerda_rnd"
+            else "hungarian_any" if _is_scal_cell(wc) or _is_disjoint_cell(wc)
+            else "first_stable"
+        ),
         alpha=0.01,
     script:
         "../scripts/fit.py"
@@ -126,6 +175,30 @@ rule synth_scalability_collect:
         "../scripts/collect.py"
 
 
+def _disjoint_metrics_inputs():
+    """Cartesian product over the strict-disjoint-cycles micro grid."""
+    return [
+        synth_model_path.format(
+            method=m, regime=disjoint_regime, d=disjoint_d,
+            num_cycles=disjoint_num_cycles, density=disjoint_density,
+            samp_size=n, seed=s,
+        ) + "metrics.csv"
+        for m in disjoint_methods
+        for n in disjoint_samp_sizes
+        if n >= disjoint_d
+        for s in disjoint_seeds
+    ]
+
+
+rule synth_disjoint_collect:
+    input:
+        _disjoint_metrics_inputs(),
+    output:
+        results="results/synth_disjoint.csv",
+    script:
+        "../scripts/collect.py"
+
+
 # Plot rules depend only on the slice of metrics they actually plot — one
 # (regime, density) at a time — so building a single PDF doesn't transitively
 # require every fit in the grid.
@@ -168,3 +241,12 @@ rule synth_plot_scalability:
         "results/scalability_disjointcycles.pdf",
     script:
         "../scripts/plot_scalability.py"
+
+
+rule synth_plot_disjoint:
+    input:
+        "results/synth_disjoint.csv",
+    output:
+        "results/disjoint_micro.pdf",
+    script:
+        "../scripts/plot_disjoint.py"

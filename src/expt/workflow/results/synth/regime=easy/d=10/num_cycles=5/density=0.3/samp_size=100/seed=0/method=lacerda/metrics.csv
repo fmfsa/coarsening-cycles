@@ -1,2 +1,2 @@
-method,regime,num_cycles,density,samp_size,seed,d,num_nodes,ari_scc,precision,recall,fscore,var_precision,var_recall,var_fscore,var_shd,inter_scc_precision,inter_scc_recall,inter_scc_fscore,chosen_threshold,chosen_beta,bic_score,runtime_sec,num_sccs,max_scc_size,num_nontrivial,frac_nontrivial,has_cycles,num_parts_est
-lacerda,easy,5,0.3,100,0,10,10,0.0,1.0,1.0,1.0,0.43478260869565216,1.0,0.6060606060606061,26,0.2777777777777778,1.0,0.4347826086956522,,,,0.16728235804475844,5,2,5,1.0,1,1
+method,regime,num_cycles,density,samp_size,seed,d,num_nodes,ari_scc,fscore,var_precision,var_recall,var_fscore,var_shd,inter_scc_precision,inter_scc_recall,inter_scc_fscore,chosen_threshold,chosen_beta,bic_score,runtime_sec,num_sccs,max_scc_size,num_nontrivial,frac_nontrivial,has_cycles,num_parts_est
+lacerda,easy,5,0.3,100,0,10,10,0.0,0.4615384615384615,0.21333333333333335,0.8,0.3368421052631579,63,0.11940298507462686,0.8,0.20779220779220778,,,,0.5084266671910882,5,2,5,1.0,1,1

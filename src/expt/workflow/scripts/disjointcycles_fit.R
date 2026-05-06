@@ -13,6 +13,39 @@ suppressPackageStartupMessages({
   library(jsonlite)
 })
 
+# -----------------------------------------------------------------------------
+# Compatibility patch.
+#
+# `disjointCycles:::djc_recurNew` builds a p×p `det3` matrix as `matrix(NA, p, p)`,
+# fills only the upper triangle with adjusted p-values, and then calls
+# `igraph::graph_from_adjacency_matrix(det3 >= threshold3, mode = "upper")`.
+# Newer `igraph` (≥ 2.0) refuses to construct a graph from a matrix that
+# contains NA, even with `mode = "upper"`. Older `igraph` tolerated it,
+# which is what the package was tested against. The same pattern repeats
+# for `temp_Adj` later in the same function.
+#
+# We patch both call sites in-process to coerce NA → FALSE before passing
+# to igraph. No fork of the upstream package required.
+# -----------------------------------------------------------------------------
+.dc_src <- paste(deparse(disjointCycles:::djc_recurNew), collapse = "\n")
+.dc_src <- gsub(
+  "igraph::graph_from_adjacency_matrix(det3 >= threshold3,",
+  "igraph::graph_from_adjacency_matrix({ .m <- det3 >= threshold3; .m[is.na(.m)] <- FALSE; .m },",
+  .dc_src, fixed = TRUE
+)
+.dc_src <- gsub(
+  "igraph::graph_from_adjacency_matrix(temp_Adj,",
+  "igraph::graph_from_adjacency_matrix({ .m <- temp_Adj; .m[is.na(.m)] <- FALSE; .m },",
+  .dc_src, fixed = TRUE
+)
+.dc_patched <- eval(parse(text = .dc_src))
+environment(.dc_patched) <- asNamespace("disjointCycles")
+assignInNamespace("djc_recurNew", .dc_patched, "disjointCycles")
+rm(.dc_src, .dc_patched)
+
+# -----------------------------------------------------------------------------
+# Driver
+# -----------------------------------------------------------------------------
 args <- commandArgs(trailingOnly = TRUE)
 obs_csv <- args[[1]]
 alpha   <- as.numeric(args[[2]])
@@ -42,8 +75,6 @@ write.table(adj, file = adj_out, sep = ",",
             row.names = FALSE, col.names = FALSE)
 
 # Flatten the layered ordering into a flat list of clusters (SCCs).
-# `est_ord` is list-of-layers; each layer is a list of integer vectors,
-# where each vector is the node set of one SCC (singleton or cycle).
 clusters <- list()
 for (layer in est_ord) {
   if (is.list(layer)) {

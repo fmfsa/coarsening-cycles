@@ -1,4 +1,5 @@
 include: "rules/synth.smk"
+include: "rules/threshold.smk"
 
 
 rule all:
@@ -9,3 +10,5 @@ rule all:
         ),
         "results/synth_main_combined.pdf",
         "results/scalability_disjointcycles.pdf",
+        "results/disjoint_micro.pdf",
+        "results/synth_threshold.pdf",
