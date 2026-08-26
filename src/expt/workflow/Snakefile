@@ -2,6 +2,8 @@ include: "rules/synth.smk"
 include: "rules/threshold.smk"
 include: "rules/ablation.smk"
 include: "rules/intervention.smk"
+include: "rules/tvb.smk"
+include: "rules/tvb_rww.smk"
 
 
 rule all:

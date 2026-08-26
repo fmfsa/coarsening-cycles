@@ -43,6 +43,24 @@ if method not in SUPPORTED_METHODS:
 data = np.load(snakemake.input.data, allow_pickle=True)
 obs = data["obs"]
 
+# Optional prefix limit (TVB grid: one 5000-sample dataset per seed, fits on
+# nested prefixes). Absent everywhere else, so existing rules are unaffected.
+sample_limit = getattr(snakemake.params, "sample_limit", None)
+if sample_limit is not None:
+    obs = obs[: int(sample_limit)]
+
+# Optional per-fit centering / standardization (Wong-Wang grid: settled
+# states have a nonzero baseline and dynamics-reshaped scales). Both happen
+# after the prefix cut so no information leaks across sample sizes.
+# Standardizing is a positive-diagonal similarity transform of the SEM
+# (B -> D B D^-1): support, SCCs, and condensation are preserved exactly.
+# Absent everywhere else.
+if bool(getattr(snakemake.params, "center", False)):
+    obs = obs - obs.mean(axis=0, keepdims=True)
+if bool(getattr(snakemake.params, "standardize", False)):
+    obs = obs - obs.mean(axis=0, keepdims=True)
+    obs = obs / obs.std(axis=0, keepdims=True)
+
 
 def _adj_to_digraph(full_adj_ij):
     """Convert (n,n) binary matrix in i→j convention to nx.DiGraph."""

@@ -37,6 +37,12 @@ dependencies = [
     "scipy>=1.13",
 ]
 
+[project.optional-dependencies]
+tvb = [
+    "tvb-library==2.10.0",
+    "tvb-data==3.0.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
