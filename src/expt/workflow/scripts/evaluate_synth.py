@@ -32,6 +32,8 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import adjusted_rand_score
 
+from repare_cycle.metrics import partition_pair_errors
+
 num_cycles = int(snakemake.wildcards.num_cycles)
 density = float(snakemake.wildcards.density)
 samp_size = int(snakemake.wildcards.samp_size)
@@ -77,6 +79,11 @@ def _ari_robust(a, b):
     return adjusted_rand_score(a, b)
 
 ari_scc = _ari_robust(scc_labels_true, est_labels)
+
+# Direct split/merge failure-mode diagnostics (pairwise). Extends the
+# aggregate ARI with *how* a wrong partition is wrong: split errors break a
+# true SCC apart, merge errors fuse distinct SCCs. See repare_cycle.metrics.
+pair_errors = partition_pair_errors(scc_labels_true, est_labels)
 
 # -------------------------------------------------------------------------
 # Variable → true-SCC label map. Used by both the cluster-DAG F1 and the
@@ -223,5 +230,45 @@ results = {
     "frac_nontrivial": frac_nontrivial,
     "has_cycles": has_cycles,
     "num_parts_est": model.dag.number_of_nodes(),
+    # Split/merge failure-mode diagnostics (rates NaN when no pair is
+    # eligible for that error type — see partition_pair_errors).
+    "split_rate": pair_errors["split_rate"],
+    "merge_rate": pair_errors["merge_rate"],
+    "n_split_pairs": pair_errors["n_split_pairs"],
+    "n_merge_pairs": pair_errors["n_merge_pairs"],
+    "n_same_true_pairs": pair_errors["n_same_true_pairs"],
+    "n_diff_true_pairs": pair_errors["n_diff_true_pairs"],
+    "error_type": pair_errors["error_type"],
+    # Selection-stage metadata (NaN/absent on pickles fitted before the
+    # staged LiNG-D pipeline or on non-LiNG-D methods).
+    "n_candidates_enumerated": float(
+        getattr(model, "n_candidates_enumerated", float("nan"))
+    ),
+    "n_candidates_returned": float(
+        getattr(model, "n_candidates_returned", float("nan"))
+    ),
+    "enumeration_cap_hit": getattr(model, "enumeration_cap_hit", float("nan")),
+    "enumeration_timed_out": getattr(
+        model, "enumeration_timed_out", float("nan")
+    ),
+    "n_stable_candidates": float(
+        getattr(model, "n_stable_candidates", float("nan"))
+    ),
+    "n_unstable_candidates": float(
+        getattr(model, "n_unstable_candidates", float("nan"))
+    ),
+    "chosen_is_stable": getattr(model, "chosen_is_stable", float("nan")),
+    "ica_runtime_sec": float(getattr(model, "ica_runtime_sec", float("nan"))),
+    "selection_runtime_sec": float(
+        getattr(model, "selection_runtime_sec", float("nan"))
+    ),
+    # Arbitrary-permutation negative-control metadata.  NaN for every
+    # ordinary LiNG-D selection procedure.
+    "permutation_admissible": getattr(
+        model, "permutation_admissible", float("nan")
+    ),
+    "min_abs_selected_diagonal": float(
+        getattr(model, "min_abs_selected_diagonal", float("nan"))
+    ),
 }
 pd.DataFrame([results]).to_csv(snakemake.output[0], index=False)

@@ -94,3 +94,12 @@ rule threshold_plot:
         "results/synth_threshold.pdf",
     script:
         "../scripts/plot_threshold.py"
+
+
+rule threshold_split_merge_plot:
+    input:
+        "results/synth_threshold.csv",
+    output:
+        "results/threshold_split_merge.pdf",
+    script:
+        "../scripts/plot_threshold_split_merge.py"

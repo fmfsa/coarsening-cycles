@@ -23,6 +23,29 @@ rest of ``repare_cycle``. By the condensation-identifiability theorem in
 the paper, every member of the equivalence class has the same
 condensation, so any representative gives the same cluster DAG.
 
+Stage functions
+---------------
+The pipeline is factored into four composable stages so that experiment
+code can hold the ICA estimate fixed while varying candidate selection:
+
+``fit_ica_unmixing``
+    FastICA only — returns the unmixing matrix ``W`` (or ``None``).
+
+``enumerate_admissible_candidates``
+    N-rooks search over ``W`` — returns stable/unstable candidate lists
+    plus enumeration metadata (count, cap hit).
+
+``choose_enumerated_candidate``
+    Selection from an enumerated candidate set: ``first_stable`` or
+    ``random_admissible``.
+
+``hungarian_candidate``
+    A single admissible representative via linear assignment in
+    ``O(d^3)``. Performs **zero** equivalence-class enumeration.
+
+``run_lingd`` composes the stages and is behaviour-compatible with the
+original monolithic implementation.
+
 Three pick strategies are supported (see ``run_lingd``):
 
 ``"first_stable"`` (default)
@@ -48,6 +71,7 @@ Three pick strategies are supported (see ``run_lingd``):
 
 from __future__ import annotations
 
+import time
 from itertools import islice
 from typing import Iterator
 
@@ -57,6 +81,7 @@ import numpy as np
 def _nrooks_permutations(
     W: np.ndarray,
     threshold_w: float,
+    deadline: float | None = None,
 ) -> Iterator[np.ndarray]:
     """Yield ``W[π, :]`` for every row permutation ``π`` of ``W`` whose
     diagonal is zeroless: ``|W[π[k], k]| > threshold_w`` for all ``k``.
@@ -69,6 +94,12 @@ def _nrooks_permutations(
     the distributional equivalence class.
 
     Bound the result via ``islice`` at the call site if you need a cap.
+    ``deadline`` (a ``time.monotonic()`` timestamp) bounds the *search
+    itself*: the backtracking that proves emptiness or bridges sparse
+    solution regions is worst-case exponential in ``d``, so without a
+    deadline the generator can stall for hours between yields at d ≳ 20.
+    When the deadline passes, remaining subtrees are pruned and the
+    generator ends early (callers detect this via their own clock).
     """
     d = W.shape[0]
     # available[k] = list of source-rows i such that |W[i, k]| > threshold_w.
@@ -80,6 +111,8 @@ def _nrooks_permutations(
     pi = [0] * d  # pi[k] = source-row to place at position k
 
     def search(col: int) -> Iterator[np.ndarray]:
+        if deadline is not None and time.monotonic() > deadline:
+            return
         if col == d:
             yield W[pi, :].copy()
             return
@@ -106,26 +139,15 @@ def _b_from_W(Wpi: np.ndarray) -> np.ndarray:
     return B
 
 
-def _hungarian_permutation(
+def _matching_permutation(
     W: np.ndarray,
-    threshold_w: float,
+    cost: np.ndarray,
 ) -> np.ndarray | None:
-    """Return ``W[π, :]`` for one admissible row permutation π via Hungarian.
-
-    Solves a linear-assignment problem on ``C[i, k] = -log(|W[i, k]|)`` with
-    ``C[i, k] = +∞`` whenever ``|W[i, k]| <= threshold_w``. The optimal
-    assignment is a permutation π such that ``|W[π(k), k]| > threshold_w``
-    for all k whenever any such permutation exists; returns ``None`` if no
-    admissible matching exists.
-
-    Worst-case ``O(d^3)``. By Theorem 1 of the paper the condensation does
-    not depend on which admissible representative is chosen, so this is
-    sufficient when only ``G'`` is needed.
-    """
+    """Return ``W[π, :]`` for the admissible row permutation π that minimises
+    ``cost`` via linear assignment; ``None`` if no admissible matching exists
+    (forbidden cells are ``+∞`` in ``cost``)."""
     from scipy.optimize import linear_sum_assignment
 
-    abs_W = np.abs(W)
-    cost = np.where(abs_W > threshold_w, -np.log(abs_W + 1e-300), np.inf)
     if not np.isfinite(cost).any(axis=0).all():
         # Some column has no admissible source — no perfect matching exists.
         return None
@@ -145,6 +167,276 @@ def _hungarian_permutation(
     return W[pi, :].copy()
 
 
+def _hungarian_permutation(
+    W: np.ndarray,
+    threshold_w: float,
+) -> np.ndarray | None:
+    """Return ``W[π, :]`` for one admissible row permutation π via Hungarian.
+
+    Solves a linear-assignment problem on ``C[i, k] = -log(|W[i, k]|)`` with
+    ``C[i, k] = +∞`` whenever ``|W[i, k]| <= threshold_w``. The optimal
+    assignment is a permutation π such that ``|W[π(k), k]| > threshold_w``
+    for all k whenever any such permutation exists; returns ``None`` if no
+    admissible matching exists.
+
+    Worst-case ``O(d^3)``. By Theorem 1 of the paper the condensation does
+    not depend on which admissible representative is chosen, so this is
+    sufficient when only ``G'`` is needed.
+    """
+    abs_W = np.abs(W)
+    cost = np.where(abs_W > threshold_w, -np.log(abs_W + 1e-300), np.inf)
+    return _matching_permutation(W, cost)
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Stage 1: ICA
+# ─────────────────────────────────────────────────────────────────────────
+def fit_ica_unmixing(
+    obs: np.ndarray,
+    *,
+    ica_max_iter: int = 5_000,
+    ica_tolerance: float = 1e-6,
+    random_state: int = 0,
+    fastica_retries: int = 4,
+) -> tuple[np.ndarray | None, str | None]:
+    """FastICA stage — estimate the unmixing matrix ``W``.
+
+    sklearn FastICA can occasionally fail; the seed is bumped and the fit
+    retried up to ``fastica_retries`` times. Returns ``(W, None)`` on
+    success and ``(None, last_error)`` if every attempt failed.
+    """
+    from sklearn.decomposition import FastICA
+
+    obs_arr = np.asarray(obs, dtype=np.float64)
+    n_features = obs_arr.shape[1]
+
+    last_err: str | None = None
+    for k in range(fastica_retries + 1):
+        try:
+            ica = FastICA(
+                n_components=n_features,
+                whiten="unit-variance",
+                max_iter=ica_max_iter,
+                tol=ica_tolerance,
+                random_state=random_state + k,
+            )
+            ica.fit(obs_arr)
+            # sklearn convention: ``S_ = (X - mean) @ ica.components_.T``
+            # so ``W = ica.components_``.
+            return np.asarray(ica.components_, dtype=np.float64), None
+        except Exception as exc:
+            last_err = repr(exc)
+            continue
+    return None, last_err
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Stage 2: candidate enumeration (N-rooks)
+# ─────────────────────────────────────────────────────────────────────────
+def enumerate_admissible_candidates(
+    W: np.ndarray,
+    *,
+    threshold_b: float = 0.1,
+    threshold_w: float = 0.1,
+    max_perms: int = 10_000,
+    time_budget_sec: float | None = None,
+) -> dict:
+    """Enumerate the admissible candidate set for ``W`` via N-rooks.
+
+    Two safeguards bound the worst-case-exponential search:
+
+    * A **Hungarian existence pre-check**: if no admissible permutation
+      exists at ``threshold_w``, the DFS would have to exhaust the entire
+      search tree just to prove emptiness. A single ``O(d^3)`` matching
+      detects this case up front and skips the enumeration entirely.
+    * An optional **wall-clock budget** (``time_budget_sec``): the DFS is
+      pruned once the budget is spent, because even when candidates exist
+      the backtracking between sparse solutions can blow up at d ≳ 20.
+
+    Returns a dict with keys
+
+      ``stable``   : list of thresholded B̂ candidates with ``ρ(B̂) < 1``.
+      ``unstable`` : list of thresholded B̂ candidates with ``ρ(B̂) ≥ 1``.
+      ``n_candidates_enumerated`` : number of admissible permutations
+          actually enumerated (≤ ``max_perms``).
+      ``enumeration_cap_hit`` : True iff at least one further admissible
+          permutation exists beyond ``max_perms`` — determined by probing
+          the generator once past the cap, not by comparing counts. When
+          True, the candidate lists are a *truncated* subset of the
+          equivalence class, not the full class.
+      ``enumeration_timed_out`` : True iff the time budget pruned the
+          search — the candidate lists are then a truncated subset and
+          ``enumeration_cap_hit`` may be under-reported.
+    """
+    # Hungarian pre-check: polynomial certificate of (non-)existence.
+    if _hungarian_permutation(W, threshold_w) is None:
+        return {
+            "stable": [],
+            "unstable": [],
+            "n_candidates_enumerated": 0,
+            "enumeration_cap_hit": False,
+            "enumeration_timed_out": False,
+        }
+
+    deadline = (
+        time.monotonic() + time_budget_sec
+        if time_budget_sec is not None else None
+    )
+    gen = _nrooks_permutations(W, threshold_w, deadline=deadline)
+    stable: list[np.ndarray] = []
+    unstable: list[np.ndarray] = []
+    n_enum = 0
+    for Wpi in islice(gen, max_perms):
+        n_enum += 1
+        B = _b_from_W(Wpi)
+        # Threshold for edge-set extraction.
+        B_thresh = np.where(np.abs(B) > threshold_b, B, 0.0)
+        rho = float(np.max(np.abs(np.linalg.eigvals(B_thresh))))
+        if rho < 1.0:
+            stable.append(B_thresh)
+        else:
+            unstable.append(B_thresh)
+    timed_out = deadline is not None and time.monotonic() > deadline
+    cap_hit = (
+        n_enum == max_perms
+        and not timed_out
+        and next(gen, None) is not None
+    )
+    return {
+        "stable": stable,
+        "unstable": unstable,
+        "n_candidates_enumerated": n_enum,
+        "enumeration_cap_hit": cap_hit,
+        "enumeration_timed_out": timed_out,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Stage 3a: selection from an enumerated candidate set
+# ─────────────────────────────────────────────────────────────────────────
+def choose_enumerated_candidate(
+    candidates: dict,
+    *,
+    pick_strategy: str = "first_stable",
+    random_state: int = 0,
+) -> tuple[np.ndarray | None, bool | None]:
+    """Select ``B_chosen`` from ``enumerate_admissible_candidates`` output.
+
+    ``"random_admissible"`` draws uniformly from stable + unstable (in that
+    concatenation order, seeded by ``random_state``); any other strategy
+    takes the first stable candidate, falling back to the first unstable
+    one. Returns ``(None, None)`` when the candidate set is empty.
+    """
+    stable = candidates["stable"]
+    unstable = candidates["unstable"]
+    all_candidates = stable + unstable
+    if pick_strategy == "random_admissible" and all_candidates:
+        rng_pick = np.random.default_rng(random_state)
+        idx = int(rng_pick.integers(len(all_candidates)))
+        return all_candidates[idx], idx < len(stable)
+    if stable:
+        return stable[0], True
+    if unstable:
+        return unstable[0], False
+    return None, None
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Stage 3b: single-representative selection without enumeration
+# ─────────────────────────────────────────────────────────────────────────
+def hungarian_candidate(
+    W: np.ndarray,
+    *,
+    threshold_b: float = 0.1,
+    threshold_w: float = 0.1,
+) -> np.ndarray | None:
+    """One admissible thresholded B̂ via linear assignment, or ``None``.
+
+    Enumerates **zero** equivalence-class candidates: the representative
+    comes from a single ``O(d^3)`` matching on ``W``, so its stability is
+    not assessed against alternatives (callers get ``is_stable=None``).
+    """
+    Wpi = _hungarian_permutation(W, threshold_w)
+    if Wpi is None:
+        return None
+    B = _b_from_W(Wpi)
+    return np.where(np.abs(B) > threshold_b, B, 0.0)
+
+
+def random_matching_candidate(
+    W: np.ndarray,
+    *,
+    threshold_b: float = 0.1,
+    threshold_w: float = 0.1,
+    random_state: int = 0,
+) -> np.ndarray | None:
+    """One *randomised* admissible thresholded B̂ WITHOUT enumeration.
+
+    Assigns i.i.d. Uniform(0, 1) costs to the allowed cells
+    (``|W[i, k]| > threshold_w``) and solves a single perfect-matching
+    problem — ``O(d^3)``, zero equivalence-class enumeration. The result is
+    a *randomised admissible solution*: which admissible permutation is
+    returned varies with ``random_state``, but the induced distribution is
+    NOT uniform over the admissible set (matching with i.i.d. costs biases
+    toward permutations that are optimal for some cost draw). Use
+    ``choose_enumerated_candidate(..., "random_admissible")`` when a
+    uniform sample over the (enumerated) class is required.
+    """
+    rng = np.random.default_rng(random_state)
+    cost = np.where(np.abs(W) > threshold_w, rng.random(W.shape), np.inf)
+    Wpi = _matching_permutation(W, cost)
+    if Wpi is None:
+        return None
+    B = _b_from_W(Wpi)
+    return np.where(np.abs(B) > threshold_b, B, 0.0)
+
+
+def arbitrary_permutation_candidate(
+    W: np.ndarray,
+    *,
+    threshold_b: float = 0.1,
+    threshold_w: float = 0.1,
+    random_state: int = 0,
+) -> tuple[np.ndarray, bool, float]:
+    """Thresholded B̂ from a uniformly random row permutation of ``W``.
+
+    This deliberately does *not* enforce the LiNG-D admissibility constraint.
+    The candidate is normalised and returned even when one or more selected
+    diagonal entries fall below ``threshold_w``.  It is therefore a negative
+    control, not an equivalence-class representative.
+
+    Returns ``(B, admissible, min_abs_diagonal)``.  ``admissible`` records
+    whether the sampled permutation happened to satisfy the same diagonal
+    threshold used by the admissible-selection procedures.
+    """
+    rng = np.random.default_rng(random_state)
+    Wpi = W[rng.permutation(W.shape[0]), :].copy()
+    min_abs_diagonal = float(np.min(np.abs(np.diag(Wpi))))
+    admissible = bool(min_abs_diagonal > threshold_w)
+    B = _b_from_W(Wpi)
+    return (
+        np.where(np.abs(B) > threshold_b, B, 0.0),
+        admissible,
+        min_abs_diagonal,
+    )
+
+
+def _failure_dict(n_features: int, last_err: str | None) -> dict:
+    return {
+        "B_chosen": np.zeros((n_features, n_features)),
+        "stable": [],
+        "unstable": [],
+        "is_stable": False,
+        "failed": True,
+        "n_perms": 0,
+        "n_candidates_enumerated": 0,
+        "n_candidates_returned": 0,
+        "enumeration_cap_hit": False,
+        "enumeration_timed_out": False,
+        "last_error": last_err,
+    }
+
+
 def run_lingd(
     obs: np.ndarray,
     *,
@@ -159,6 +451,11 @@ def run_lingd(
     **_: object,  # accept and ignore legacy kwargs (max_retries, ica_a, …)
 ) -> dict:
     """LiNG-D on ``obs`` — returns the equivalence class.
+
+    Composes ``fit_ica_unmixing`` + (``enumerate_admissible_candidates`` →
+    ``choose_enumerated_candidate`` | ``hungarian_candidate``). When no
+    admissible permutation exists at ``threshold_w``, the threshold is
+    halved (down to 0.01) and selection re-runs on the *same* ``W``.
 
     Parameters
     ----------
@@ -189,7 +486,7 @@ def run_lingd(
             Sufficient when only the condensation is needed (Theorem 1 of
             the paper guarantees the choice does not affect ``G'``). The
             return dict has ``stable=unstable=[]``, ``is_stable=None``,
-            and ``n_perms=1``.
+            ``n_candidates_enumerated=0`` and ``n_candidates_returned=1``.
 
     Returns
     -------
@@ -200,138 +497,96 @@ def run_lingd(
       ``unstable``  : list of B̂ candidates with ``ρ(B̂) ≥ 1``.
       ``is_stable`` : whether ``B_chosen`` came from ``stable``.
       ``failed``    : True if FastICA itself failed every retry.
-      ``n_perms``   : how many admissible permutations were enumerated.
+      ``n_perms``   : legacy alias — admissible permutations enumerated by
+                      N-rooks (``1`` for the Hungarian path, which
+                      historically reported its single representative here;
+                      prefer the two explicit fields below).
+      ``n_candidates_enumerated`` : equivalence-class members enumerated
+                      (``0`` for the Hungarian path — it never enumerates).
+      ``n_candidates_returned``   : candidates materialised in
+                      ``stable`` + ``unstable`` (``1`` for Hungarian).
+      ``enumeration_cap_hit``     : True iff the ``max_perms`` cap truncated
+                      the enumeration (see ``enumerate_admissible_candidates``).
+      ``ica_runtime_sec``, ``selection_runtime_sec`` : per-stage wall time.
     """
-    from sklearn.decomposition import FastICA
-
     obs_arr = np.asarray(obs, dtype=np.float64)
     n_features = obs_arr.shape[1]
 
-    # FastICA — sklearn returns the unmixing matrix as ``W = whitening⁻¹ ·
-    # rotation⁻¹``. The transformation ``S = (X - mean) @ W.T`` produces
-    # mutually independent components.
-    W: np.ndarray | None = None
-    last_err: str | None = None
-    for k in range(fastica_retries + 1):
-        try:
-            ica = FastICA(
-                n_components=n_features,
-                whiten="unit-variance",
-                max_iter=ica_max_iter,
-                tol=ica_tolerance,
-                random_state=random_state + k,
-            )
-            ica.fit(obs_arr)
-            # sklearn convention: ``S_ = (X - mean) @ ica.components_.T``
-            # so ``W = ica.components_``.
-            W = np.asarray(ica.components_, dtype=np.float64)
-            break
-        except Exception as exc:
-            last_err = repr(exc)
-            continue
+    t0 = time.perf_counter()
+    W, last_err = fit_ica_unmixing(
+        obs_arr,
+        ica_max_iter=ica_max_iter,
+        ica_tolerance=ica_tolerance,
+        random_state=random_state,
+        fastica_retries=fastica_retries,
+    )
+    ica_runtime_sec = time.perf_counter() - t0
 
     if W is None:
-        return {
-            "B_chosen": np.zeros((n_features, n_features)),
-            "stable": [],
-            "unstable": [],
-            "is_stable": False,
-            "failed": True,
-            "n_perms": 0,
-            "last_error": last_err,
-        }
+        out = _failure_dict(n_features, last_err)
+        out["ica_runtime_sec"] = ica_runtime_sec
+        out["selection_runtime_sec"] = 0.0
+        return out
 
-    # Hungarian fast path: skip N-rooks enumeration entirely. By Theorem 1
-    # of the paper, the recovered condensation is invariant across the
-    # equivalence class, so a single admissible representative suffices.
+    t1 = time.perf_counter()
+
     if pick_strategy == "hungarian_any":
-        Wpi = _hungarian_permutation(W, threshold_w)
-        if Wpi is not None:
-            B = _b_from_W(Wpi)
-            B_thresh = np.where(np.abs(B) > threshold_b, B, 0.0)
-            return {
-                "B_chosen": B_thresh,
-                "stable": [],
-                "unstable": [],
-                "is_stable": None,
-                "failed": False,
-                "n_perms": 1,
-                "last_error": None,
-            }
-        # Fall through to threshold halving below.
-        if threshold_w > 0.01:
-            return run_lingd(
-                obs,
-                threshold_b=threshold_b,
-                threshold_w=threshold_w / 2,
-                ica_max_iter=ica_max_iter,
-                ica_tolerance=ica_tolerance,
-                random_state=random_state,
-                max_perms=max_perms,
-                fastica_retries=0,
-                pick_strategy=pick_strategy,
+        thr_w = threshold_w
+        B_hun: np.ndarray | None = None
+        while True:
+            B_hun = hungarian_candidate(
+                W, threshold_b=threshold_b, threshold_w=thr_w
             )
+            if B_hun is not None or thr_w <= 0.01:
+                break
+            thr_w /= 2  # no admissible matching — lower the bar and retry
+        found = B_hun is not None
         return {
-            "B_chosen": np.zeros((n_features, n_features)),
+            "B_chosen": B_hun if found else np.zeros((n_features, n_features)),
             "stable": [],
             "unstable": [],
             "is_stable": None,
             "failed": False,
-            "n_perms": 0,
+            "n_perms": 1 if found else 0,
+            "n_candidates_enumerated": 0,
+            "n_candidates_returned": 1 if found else 0,
+            "enumeration_cap_hit": False,
+            "enumeration_timed_out": False,
             "last_error": None,
+            "ica_runtime_sec": ica_runtime_sec,
+            "selection_runtime_sec": time.perf_counter() - t1,
         }
 
-    # N-rooks: enumerate diagonal-zeroless column permutations of W.
-    stable: list[np.ndarray] = []
-    unstable: list[np.ndarray] = []
-    n_perms = 0
-    for Wpi in islice(_nrooks_permutations(W, threshold_w), max_perms):
-        n_perms += 1
-        B = _b_from_W(Wpi)
-        # Threshold for edge-set extraction.
-        B_thresh = np.where(np.abs(B) > threshold_b, B, 0.0)
-        rho = float(np.max(np.abs(np.linalg.eigvals(B_thresh))))
-        if rho < 1.0:
-            stable.append(B_thresh)
-        else:
-            unstable.append(B_thresh)
+    thr_w = threshold_w
+    while True:
+        candidates = enumerate_admissible_candidates(
+            W, threshold_b=threshold_b, threshold_w=thr_w, max_perms=max_perms
+        )
+        B_chosen, is_stable = choose_enumerated_candidate(
+            candidates, pick_strategy=pick_strategy, random_state=random_state
+        )
+        if B_chosen is not None or thr_w <= 0.01:
+            break
+        thr_w /= 2  # no admissible permutation — lower the bar and retry
 
-    all_candidates = stable + unstable
-    if pick_strategy == "random_admissible" and all_candidates:
-        rng_pick = np.random.default_rng(random_state)
-        idx = int(rng_pick.integers(len(all_candidates)))
-        B_chosen = all_candidates[idx]
-        is_stable = idx < len(stable)
-    elif stable:
-        B_chosen = stable[0]
-        is_stable = True
-    elif unstable:
-        B_chosen = unstable[0]
-        is_stable = False
-    else:
-        # No admissible permutation found at this threshold_w. Lower the bar
-        # to threshold_w/2 once before giving up.
-        if threshold_w > 0.01:
-            return run_lingd(
-                obs,
-                threshold_b=threshold_b,
-                threshold_w=threshold_w / 2,
-                ica_max_iter=ica_max_iter,
-                ica_tolerance=ica_tolerance,
-                random_state=random_state,
-                max_perms=max_perms,
-                fastica_retries=0,  # already have W; just rerun N-rooks
-                pick_strategy=pick_strategy,
-            )
+    if B_chosen is None:
         B_chosen = np.zeros((n_features, n_features))
         is_stable = False
 
     return {
         "B_chosen": B_chosen,
-        "stable": stable,
-        "unstable": unstable,
+        "stable": candidates["stable"],
+        "unstable": candidates["unstable"],
         "is_stable": is_stable,
         "failed": False,
-        "n_perms": n_perms,
+        "n_perms": candidates["n_candidates_enumerated"],
+        "n_candidates_enumerated": candidates["n_candidates_enumerated"],
+        "n_candidates_returned": (
+            len(candidates["stable"]) + len(candidates["unstable"])
+        ),
+        "enumeration_cap_hit": candidates["enumeration_cap_hit"],
+        "enumeration_timed_out": candidates["enumeration_timed_out"],
         "last_error": None,
+        "ica_runtime_sec": ica_runtime_sec,
+        "selection_runtime_sec": time.perf_counter() - t1,
     }
