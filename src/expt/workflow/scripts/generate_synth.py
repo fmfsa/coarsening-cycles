@@ -80,4 +80,10 @@ np.savez(
     scc_labels=scc_labels,
     scc_sizes=scc_sizes_arr,
     obs=obs_dataset,
+    # Noise parameters, stored explicitly so downstream consumers (e.g. the
+    # intervention experiment) can compute analytic noise/equilibrium means
+    # without re-deriving them from RNG call order.
+    noise_means=model.noise_means,
+    noise_vars=model.noise_vars,
+    noise_dist=np.array(noise_dist),
 )
