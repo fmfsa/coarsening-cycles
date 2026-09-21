@@ -250,3 +250,23 @@ rule synth_plot_disjoint:
         "results/disjoint_micro.pdf",
     script:
         "../scripts/plot_disjoint.py"
+
+
+# Sample-complexity rate experiment (App. A.X — Prop. 4 corroboration).
+# One fixed data-generating SCM, sweep n widely with many seeds, threshold
+# at τ = β_min/2. The CSV is a leaf product of one self-contained script;
+# the plot reads the CSV.
+rule sample_complexity_run:
+    output:
+        "results/sample_complexity.csv",
+    script:
+        "../scripts/sample_complexity_experiment.py"
+
+
+rule sample_complexity_plot:
+    input:
+        "results/sample_complexity.csv",
+    output:
+        "results/sample_complexity.pdf",
+    script:
+        "../scripts/plot_sample_complexity.py"
