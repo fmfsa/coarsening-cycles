@@ -86,6 +86,7 @@ if method in ("lacerda", "lacerda_rnd"):
         ica_max_iter=max_iter,
         ica_tolerance=1e-6,
         pick_strategy=pick_strategy,
+        random_state=random_state,
     )
     fit_runtime_sec = time.perf_counter() - start
 
@@ -129,6 +130,9 @@ if method in ("lacerda", "lacerda_rnd"):
         n_stable_candidates=len(result["stable"]),
         n_unstable_candidates=len(result["unstable"]),
         chosen_is_stable=result["is_stable"],
+        fit_failed=bool(result["failed"] or result["n_candidates_returned"] == 0),
+        enumeration_cap_hit=result["enumeration_cap_hit"],
+        enumeration_timed_out=result.get("enumeration_timed_out", False),
     )
 
 elif method == "disjointcycles":

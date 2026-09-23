@@ -55,8 +55,8 @@ n_cols = max(len(num_cycles_vals), 1)
 
 ROWS = [
     ("ari_scc",    "ARI ↑ — SCC partition"),
-    ("fscore",     "F₁ ↑ — cluster DAG"),
-    ("var_fscore", "F₁ ↑ — variable-level DAG"),
+    ("fscore",     r"$F_1$ ↑ — cluster DAG"),
+    ("var_fscore", r"$F_1$ ↑ — variable-level graph"),
 ]
 
 fig, axes = plt.subplots(len(ROWS), n_cols, figsize=(5.4 * n_cols, 12), sharey="row")
@@ -73,7 +73,7 @@ for j, kappa in enumerate(num_cycles_vals):
             palette=DENSITY_COLOR,
             dashes=REGIME_DASH,
             markers=True,
-            estimator="median", errorbar=("ci", 95),
+            estimator="median", errorbar=("ci", 95), seed=0,
             linewidth=2.4, markersize=8,
             ax=ax, legend=(i == 0 and j == 0),
         )

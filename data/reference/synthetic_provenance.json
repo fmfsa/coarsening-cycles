@@ -1,0 +1,12 @@
+{
+  "synth_results.csv": {
+    "sha256_uncompressed": "af6072f6f520422776720bb9a50e9c53623fbf09eb7cd68bd3e78459d2f29851",
+    "source_worktree_commit": "a3b9850",
+    "compressed_file": "synth_results.csv.gz"
+  },
+  "synth_ablation.csv": {
+    "sha256_uncompressed": "a4ebeada557c1e492dda6377bf4e8d33033fc50bb8d588071b22af6b27b6a5c7",
+    "source_worktree_commit": "a3b9850",
+    "compressed_file": "synth_ablation.csv.gz"
+  }
+}

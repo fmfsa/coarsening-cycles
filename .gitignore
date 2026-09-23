@@ -11,12 +11,18 @@ devenv.local.nix
 
 # python
 **/__pycache__/
+.venv/
+.cache/
+.pytest_cache/
+*.egg-info/
 
 # snakemake experiments
 /src/expt/.snakemake/
 /src/expt/results/
 /src/expt/workflow/.snakemake/
 /src/expt/workflow/results/
+/output/
+/logs/
 
 # Claude Code session metadata
 .claude/

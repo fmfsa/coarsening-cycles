@@ -45,6 +45,11 @@ build-backend = "hatchling.build"
 packages = ["src/repare_cycle"]
 
 [dependency-groups]
+experiments = [
+    "lingam==1.13.0",
+    "pandas>=2.2",
+    "psutil>=6",
+]
 dev = [
     "pytest>=8.3.4",
     "seaborn>=0.13.2",

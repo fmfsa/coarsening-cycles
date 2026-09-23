@@ -1,12 +1,15 @@
-"""Empirical corroboration of Proposition 4 (App. A.X).
+"""Optional fresh simulation for Proposition 3; NOT needed for Fig. 5.
+
+The published figure is rebuilt from data/reference/sample_complexity.csv.
+This historical generator is retained separately and does not overwrite it.
 
 Fix one data-generating SCM and sweep n widely with many seeds. At each
 (n, seed) we
   1. sample n iid observations,
   2. run lacerda (FastICA + N-rooks + Tarjan) at threshold τ = β_min/2
-     with the first-stable picker — for sparse cyclic graphs the unique
-     stable equivalence-class member coincides with the data-generating
-     B, so this targets supp(B) directly,
+     with the first-stable picker — the fixed example's population class
+     was checked to have one stable member, the data-generating B.
+     Sparsity alone does not imply this uniqueness for general cyclic graphs.
   3. record exact-support match (variable-level F1 = 1) and the
      condensation match (ARI = 1 AND cluster-DAG F1 = 1).
 
@@ -15,7 +18,7 @@ If the proposition is empirically tight, on a log-log plot:
     (the 1/n² rate from the proposition);
   - P[condensation-recovery error] inherits the same rate by Step 3.
 
-Output: results/sample_complexity.csv with columns
+Output: results/sample_complexity_rerun.csv with columns
     n, seed, support_match, condensation_match, var_fscore, ari, cluster_f1, beta_min
 """
 
@@ -43,7 +46,7 @@ NOISE      = "laplace"
 SAMPLE_SIZES = [100, 200, 300, 400, 500, 700, 1000, 2000, 5000, 10000]
 N_SEEDS      = 300
 
-OUT_CSV = "results/sample_complexity.csv"
+OUT_CSV = "results/sample_complexity_rerun.csv"
 
 
 def main() -> None:

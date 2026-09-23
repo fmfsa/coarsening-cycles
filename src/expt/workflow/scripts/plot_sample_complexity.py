@@ -1,11 +1,12 @@
-"""Empirical $1/n^2$ rate plot — companion to App. A.X.
+"""Historical empirical rate plot — companion to Proposition 3.
 
 Two panels:
   Left   E[Hamming(supp(B̂), supp(B))] vs n on log-log. The
-         proposition predicts E[Hamming] ≲ d² K / n², so a slope of −2
-         is the empirical signature of the rate.
+         slope −2 is a reference for the conservative upper bound,
+         not a required empirical rate.
   Right  P[supp(B̂) = supp(B)] vs n. Same data, viewed as exact-recovery.
-         Steeper than the Hamming panel because it's a binary indicator.
+         The caption's −2.9 slope concerns the FAILURE probability,
+         not the plotted success probability.
 
 A reference line of slope −2 is overlaid on the left panel for eyeball
 verification, plus a fit slope on the same panel computed via OLS in
@@ -37,7 +38,7 @@ try:
     csv_path = snakemake.input[0]   # type: ignore[name-defined]
     pdf_path = snakemake.output[0]  # type: ignore[name-defined]
 except NameError:
-    csv_path = "results/sample_complexity.csv"
+    csv_path = "../../../data/reference/sample_complexity.csv"
     pdf_path = "results/sample_complexity.pdf"
 
 
@@ -110,7 +111,7 @@ if len(anchor_df) > 0:
     n_ref = np.array(agg["n"], dtype=float)
     ax.plot(n_ref, h_anchor * (n_ref / n_anchor) ** -2,
             color="0.4", linestyle=(0, (4, 2)), linewidth=1.6,
-            label=r"slope $-2$ (Prop. 4)")
+            label=r"slope $-2$ (Prop. 3)")
 
 if len(nz_filt) >= 2:
     slope, intercept, r_value, _, _ = stats.linregress(
@@ -120,7 +121,9 @@ if len(nz_filt) >= 2:
             transform=ax.transAxes, fontsize=14, color="0.2")
 
 ax.set_xscale("log")
-ax.set_yscale("log")
+# Zero observed error has no log coordinate. Mask it rather than drawing an
+# artificial vertical segment down to Matplotlib's clipping floor.
+ax.set_yscale("log", nonpositive="mask")
 ax.set_xlabel(r"sample size $n$")
 ax.set_ylabel(r"$\mathbb{E}[\,d_H(\mathrm{supp}\,\hat B,\, \mathrm{supp}\, B)\,]$")
 ax.legend(frameon=False, fontsize=14, loc="upper right")

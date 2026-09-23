@@ -1,0 +1,12 @@
+# Full paired comparison. Time limits are ceilings, not runtime predictions.
+# Freeze this file before running; retain it with the outputs.
+group_lingam_full:
+  sizes: [100, 500, 1000, 2000, 5000, 10000]
+  seeds: 10
+  timeout_by_n:
+    100: 600
+    500: 600
+    1000: 1800
+    2000: 7200
+    5000: 21600
+    10000: 86400

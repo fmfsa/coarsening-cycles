@@ -36,14 +36,16 @@ Without R, the d=10 main grid and threshold-sensitivity sweep still run; only `s
 
 ## Reproducing the paper figures
 
-All four figures from the paper come out of one Snakemake pipeline:
+The figures come out of one Snakemake pipeline. The historical Fig. 5 data
+are included; that figure is replotted without running simulations.
 
 | Paper figure | File produced |
 |---|---|
-| Fig. 3 — main synthetic results (`synth_main_combined.pdf`) | `src/expt/workflow/results/synth_main_combined.pdf` |
+| Fig. 3 — paper grid through n=100,000 | `src/expt/workflow/results/paper_fig3.pdf` |
 | Fig. 4 — scalability vs disjointCycles (`scalability_disjointcycles.pdf`) | `src/expt/workflow/results/scalability_disjointcycles.pdf` |
-| Fig. 5 (App. C.1) — strict disjoint-cycles micro experiment | `src/expt/workflow/results/disjoint_micro.pdf` |
-| Fig. 6 (App. C.2) — threshold sensitivity | `src/expt/workflow/results/synth_threshold.pdf` |
+| Fig. 5 — sample complexity (saved results) | `src/expt/workflow/results/sample_complexity.pdf` |
+| Fig. 6 (App. C.1) — strict disjoint-cycles micro experiment | `src/expt/workflow/results/disjoint_micro.pdf` |
+| Fig. 7 (App. C.2) — threshold sensitivity | `src/expt/workflow/results/synth_threshold.pdf` |
 
 To reproduce all of them:
 
@@ -60,15 +62,18 @@ The full sweep takes a few hours on a CPU workstation (most time goes into the d
 cd src/expt/workflow
 
 # Fig. 3 (main synthetic results)
-snakemake results/synth_main_combined.pdf --cores all
+snakemake results/paper_fig3.pdf --cores all
 
 # Fig. 4 (scalability)
 snakemake results/scalability_disjointcycles.pdf --cores all
 
-# Fig. 5 (disjoint-cycles micro)
+# Fig. 5 (replot the saved CSV; no simulations)
+snakemake results/sample_complexity.pdf --cores 1
+
+# Fig. 6 (disjoint-cycles micro)
 snakemake results/disjoint_micro.pdf --cores all
 
-# Fig. 6 (threshold sensitivity)
+# Fig. 7 (threshold sensitivity)
 snakemake results/synth_threshold.pdf --cores all
 ```
 
@@ -87,8 +92,8 @@ snakemake -n
 ### Additional experiments
 
 Three additional experiments that are not part
-of `snakemake --cores all` (the default target still builds exactly the four
-paper figures); build them explicitly:
+of `snakemake --cores all` (the default target builds the five paper figures
+listed above plus legacy main-grid panels); build them explicitly:
 
 ```bash
 cd src/expt/workflow
@@ -134,7 +139,7 @@ The grids share one set of generate/fit/evaluate scripts. Defaults are in `src/e
 | Seeds | `range(10)` |
 | Noise | skewed exponential (so disjointCycles' third-moment tests carry signal) |
 
-**Strict disjoint-cycles micro grid** (Fig. 5) — `rules/synth.smk`. Each SCC is a single Hamilton cycle (no intra-SCC chords), so all simple cycles are pairwise vertex-disjoint by construction.
+**Strict disjoint-cycles micro grid** (Fig. 6) — `rules/synth.smk`. Each SCC is a single Hamilton cycle (no intra-SCC chords), so all simple cycles are pairwise vertex-disjoint by construction.
 
 | Parameter | Default |
 |---|---|
@@ -145,7 +150,7 @@ The grids share one set of generate/fit/evaluate scripts. Defaults are in `src/e
 | Seeds | `range(10)` |
 | Noise | skewed exponential |
 
-**Threshold-sensitivity grid** (Fig. 6) — `rules/threshold.smk`:
+**Threshold-sensitivity grid** (Fig. 7) — `rules/threshold.smk`:
 
 | Parameter | Default |
 |---|---|
@@ -237,7 +242,7 @@ src/
     intervention.py         # Whole-SCC hard interventions + block regression
     examples.py             # Hard-coded SEMs from the literature (e.g. Lacerda 2008)
   expt/workflow/            # Snakemake pipeline
-    Snakefile               # Top-level: lists the four paper figures as targets
+    Snakefile               # Top-level: paper figures and legacy panels
     rules/synth.smk         # Main + scalability + disjoint-micro grids
     rules/threshold.smk     # Threshold-sensitivity sweep
     rules/ablation.smk      # Candidate-selection ablation (+ cost arm)
@@ -256,3 +261,89 @@ tests/
 ```bash
 pytest tests/
 ```
+
+## September paper revision: P3.8–9 and P4.10
+
+Use Python 3.11 for the benchmark: `lingam==1.13.0` constrains SciPy to
+<=1.13.1, which has no Python 3.13 wheel. From the repository root:
+
+```bash
+uv venv .venv --python 3.11
+uv pip install --python .venv/bin/python -e . --group dev --group experiments
+source .venv/bin/activate
+export MPLBACKEND=Agg
+export MPLCONFIGDIR="$PWD/.cache/matplotlib"
+export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1
+cd src/expt/workflow
+
+# Fig. 5: uses ../../../data/reference/sample_complexity.csv verbatim.
+snakemake results/sample_complexity.pdf --cores 1
+
+# Fig. 3: explicit paper grid to n=100,000; original smaller grids unchanged.
+snakemake results/paper_fig3.pdf --cores 4
+
+# Ablation: label corrections from saved results, no new fits.
+snakemake results/paper_ablation_selection.pdf --cores 1
+
+# Fig. 6-style ablation comparison: ARI, cluster-DAG F1, and selection time.
+# Reuses saved timings; also exports per-cell data, medians, and a caption.
+snakemake results/ablation_accuracy_runtime.pdf --cores 1
+
+# Quick paired benchmark: 18 datasets, 36 fits, 120 s budget per fit.
+# Run timed comparisons on an otherwise idle machine.
+snakemake results/group_lingam/pilot/comparison.pdf --cores 1 --resources benchmark_slot=1
+
+# Runtime feasibility: seed 0, n=1000 and 2000, both regimes, 3600 s/fit.
+# This is a runtime check, not a 10-seed accuracy comparison.
+snakemake results/group_lingam/feasibility/sample_sizes.pdf --cores 1 --resources benchmark_slot=1
+
+# Subsequent feasibility check at n=5000: seed 0, 7200 s/fit.
+snakemake results/group_lingam/large_probe/sample_sizes.pdf --cores 1 --resources benchmark_slot=1
+
+# Full server benchmark: 10 seeds; six sizes through n=10,000.
+# Limits by sample size are declared in config/group_lingam_full.yaml.
+cd ../../..
+bash scripts/run_group_lingam_full.sh --dry-run
+# Launch later, on the server:
+# bash scripts/run_group_lingam_full.sh
+```
+
+The benchmark also produces `metrics.csv`, `summary.csv`, `report.md`, and
+one JSON per attempt with data/code hashes, versions, groups, known edges,
+wall/CPU times, memory, and failure status. A completed timeout is cached;
+delete that specific JSON (or force its rule) to retry it deliberately.
+Do not run other experiments concurrently with timed comparisons.
+
+`sample_sizes.pdf` is the Fig. 6-style layout (ARI, cluster-DAG F₁, runtime;
+stable/unstable rows). Its `sample_sizes_table.md` reports completion counts
+and exact recovery separately. The original pilot `comparison.pdf` remains
+available. A one-seed feasibility figure has no estimated uncertainty band.
+The full server grid includes n=2000 and uses longer, explicit per-size time
+limits. See [server setup and run instructions](docs/group_lingam_server.md)
+and [the exact GitHub staging manifest](docs/github_push_files.txt).
+
+`scripts/reuse_group_lingam.py` can initialize a new profile with compatible
+completed fits. It verifies observation and implementation hashes, package
+versions, machine platform, and fit settings; it never reuses timeouts or
+overwrites source results. Reused JSONs retain their source path and hash.
+
+Fig. 3's paper target uses only first-stable fits, with 10 seeds for both
+regimes, all three densities and SCC counts, and sample sizes
+50, 100, 500, 1000, 5000, 10000, 50000, 100000. It does not extend the
+ablation grid. It reuses the 900 saved first-stable cells through n=5,000
+and runs only the 540 missing high-n cells. The output CSV marks historical
+versus new results; original low-n environment/logs are unavailable. The
+main-grid target above retains its smaller legacy range and can regenerate
+the low-n fits independently.
+
+The Fig. 5 reference CSV is versioned and checksummed in `data/reference/`.
+The legacy `results/sample_complexity.csv` target exports this saved CSV.
+The optional `results/sample_complexity_rerun.csv` target runs the historical
+generator separately; it is not a dependency of any figure and does not
+overwrite the reference data. The original generator's failure handling is
+historical and has not been revised or used for this figure update.
+
+See `docs/paper_revision_handoff.md` for paper wording, limitations, and results.
+`experiments-requirements.lock` records the installed Python 3.11 environment;
+from the root, `uv pip install --python .venv/bin/python -r experiments-requirements.lock`
+recreates its package versions.

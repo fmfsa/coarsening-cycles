@@ -223,6 +223,9 @@ results = {
     "bic_score": (model.tuner.get("bic_score", model.tuner.get("oracle_score", float("nan")))
                   if hasattr(model, "tuner") else float("nan")),
     "runtime_sec": float(getattr(model, "fit_runtime_sec", float("nan"))),
+    "fit_failed": getattr(model, "fit_failed", False),
+    "enumeration_cap_hit": getattr(model, "enumeration_cap_hit", False),
+    "enumeration_timed_out": getattr(model, "enumeration_timed_out", False),
     # SCC structure (from Tarjan's on the true graph)
     "num_sccs": num_sccs,
     "max_scc_size": max_scc_size,

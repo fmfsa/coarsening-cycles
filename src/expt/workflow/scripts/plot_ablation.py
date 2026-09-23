@@ -60,8 +60,8 @@ cells = df.groupby(CELL, as_index=False)[num_cols].mean()
 
 ROWS = [
     ("ari_scc", "ARI ↑ — SCC partition"),
-    ("fscore", "F₁ ↑ — cluster DAG"),
-    ("var_fscore", "F₁ ↑ — variable-level DAG"),
+    ("fscore", r"$F_1$ ↑ — cluster DAG"),
+    ("var_fscore", r"$F_1$ ↑ — variable-level graph"),
 ]
 REGIMES = ["stable", "unstable"]
 
@@ -77,7 +77,7 @@ for j, regime in enumerate(REGIMES):
             data=sub, x="samp_size", y=ycol,
             hue="branch", style="branch",
             palette=BRANCH_COLOR, dashes=BRANCH_DASH, markers=True,
-            estimator="median", errorbar=("ci", 95),
+            estimator="median", errorbar=("ci", 95), seed=0,
             linewidth=2.4, markersize=8,
             ax=ax, legend=(i == 0 and j == 0),
         )
@@ -92,7 +92,7 @@ leg = axes[0, 0].get_legend()
 if leg is not None:
     axes[0, 0].legend(
         leg.legend_handles, [t.get_text() for t in leg.get_texts()],
-        loc="lower right", frameon=False, fontsize=15,
+        loc="upper left", frameon=False, fontsize=15,
         handlelength=2.0, handletextpad=0.5, labelspacing=0.3, borderpad=0.3,
         title=None,
     )

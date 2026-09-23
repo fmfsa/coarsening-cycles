@@ -256,16 +256,26 @@ rule synth_plot_disjoint:
 # One fixed data-generating SCM, sweep n widely with many seeds, threshold
 # at τ = β_min/2. The CSV is a leaf product of one self-contained script;
 # the plot reads the CSV.
-rule sample_complexity_run:
+rule sample_complexity_saved:
+    input:
+        "../../../data/reference/sample_complexity.csv",
     output:
         "results/sample_complexity.csv",
+    run:
+        import shutil
+        shutil.copyfile(input[0], output[0])
+
+
+rule sample_complexity_run:
+    output:
+        "results/sample_complexity_rerun.csv",
     script:
         "../scripts/sample_complexity_experiment.py"
 
 
 rule sample_complexity_plot:
     input:
-        "results/sample_complexity.csv",
+        "../../../data/reference/sample_complexity.csv",
     output:
         "results/sample_complexity.pdf",
     script:
