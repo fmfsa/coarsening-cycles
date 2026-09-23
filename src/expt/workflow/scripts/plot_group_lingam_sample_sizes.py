@@ -25,6 +25,8 @@ def median_interval(values):
 df = pd.read_csv(snakemake.input[0])
 preview = bool(getattr(snakemake.params, "preview", False))
 planned_sizes = list(getattr(snakemake.params, "planned_sizes", []))
+group_lingam_max_n = getattr(snakemake.params, "group_lingam_max_n", None)
+parallel_fits = int(getattr(snakemake.params, "parallel_fits", 1) or 1)
 # Match the rendered paper Fig. 6: a shared rose, distinguished by line style.
 methods = {"hungarian": ("ours", "#AE6B91", "-"),
            "group_lingam": ("GroupLiNGAM", "#AE6B91", "--")}
@@ -107,7 +109,11 @@ plt.close(fig)
 
 report = ["# Sample-size comparison: companion table", "",
           "The two methods receive identical observations per regime, n, and seed. "
-          "d=10, 4 non-trivial SCCs, density 0.5, Laplace noise; one numerical thread and one timed fit at a time. "
+          "d=10, 4 non-trivial SCCs, density 0.5, Laplace noise; one numerical thread per fit and "
+          + ("one timed fit at a time. " if parallel_fits == 1 else
+             f"up to {parallel_fits} concurrent single-threaded timed fits (both methods share the same slots). ")
+          + (f"GroupLiNGAM was run only for n ≤ {group_lingam_max_n}; larger sizes report ours alone. "
+             if group_lingam_max_n and group_lingam_max_n < df.samp_size.max() else "") +
           "GroupLiNGAM 1.13.0: alpha=0.01, native edge estimation. Ours: Hungarian selection, threshold 0.1. "
           "Fit wall/CPU times exclude worker setup, data loading, and evaluation; they include lazy initialization inside the method call.", "",
           "ARI and F1 summarize completed fits only. F1 projects known predicted edges onto the true partition; "

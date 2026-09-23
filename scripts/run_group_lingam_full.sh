@@ -13,6 +13,8 @@ export MPLCONFIGDIR="$repo_dir/.cache/matplotlib"
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
 export VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 mkdir -p "$MPLCONFIGDIR"
+# Concurrent single-threaded fits, declared in the config (default 1).
+slots=$("$python_path" -c "import sys, yaml; print(int(yaml.safe_load(open(sys.argv[1]))['group_lingam_full'].get('parallel_fits', 1)))" "$repo_dir/config/group_lingam_full.yaml")
 # A fresh source cache avoids using stale cached scripts after git pull.
 task_cache=$(mktemp -d "${TMPDIR:-/tmp}/coarsening-snakemake.XXXXXX")
 "$snakemake_path" results/group_lingam/full/sample_sizes.pdf \
@@ -20,4 +22,4 @@ task_cache=$(mktemp -d "${TMPDIR:-/tmp}/coarsening-snakemake.XXXXXX")
   --directory "$repo_dir/src/expt/workflow" \
   --configfile "$repo_dir/config/group_lingam_full.yaml" \
   --runtime-source-cache-path "$task_cache" \
-  --cores 1 --resources benchmark_slot=1 --rerun-incomplete "$@"
+  --cores "$slots" --resources benchmark_slot="$slots" --rerun-incomplete "$@"

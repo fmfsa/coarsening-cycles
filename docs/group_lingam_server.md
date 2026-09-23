@@ -61,7 +61,10 @@ The versioned configuration is `config/group_lingam_full.yaml`:
 - d=10, κ=4, density=0.5, independent Laplace noise.
 - Stable and unstable regimes, seeds 0–9.
 - n=100, 500, 1000, 2000, 5000, 10000.
-- Both methods see the same dataset per regime/n/seed: 120 datasets, 240 fits.
+- Ours runs on every n; GroupLiNGAM only for n ≤ `group_lingam_max_n` (1000).
+  Where both run they see the same dataset: 120 datasets, 180 fits.
+  (A serial GroupLiNGAM fit at n=2000 took ~28 min on the server, so
+  n=10000 would need about a day per fit.)
 - GroupLiNGAM 1.13.0, alpha=0.01, native edge estimation.
 - Ours uses magnitude-based Hungarian matching, thresholds 0.1,
   FastICA max_iter=10000 and tol=1e-6, with the dataset seed.
@@ -102,9 +105,10 @@ echo $! > logs/group_lingam_full.pid
 
 On a managed cluster, use the same `bash scripts/run_group_lingam_full.sh`
 command inside its batch scheduler instead of running on a login node.
-The launcher sets one numerical thread and runs one job at a time, avoiding
-competing timed fits and data generation. Do not increase parallelism for a
-timing figure without changing and documenting that protocol for both methods.
+The launcher sets one numerical thread per fit and runs up to
+`parallel_fits` (8) single-threaded jobs concurrently; both methods share the
+same slots, so each method's fits compete for the machine in the same way.
+Set `parallel_fits: 1` for the strict one-fit-at-a-time protocol.
 
 Inspect progress with `tail -f logs/group_lingam_full.log`. Per-fit stdout,
 errors, and convergence warnings are retained under

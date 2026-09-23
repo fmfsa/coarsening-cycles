@@ -7,7 +7,8 @@ df = pd.DataFrame([{k: v for k, v in row.items() if not isinstance(v, (dict, lis
 keys = ["regime", "samp_size", "seed"]
 if df.duplicated(keys+["method"]).any():
     raise ValueError("Duplicate benchmark attempt")
+# Ours may run alone above the GroupLiNGAM size cap; every GroupLiNGAM fit must be paired.
 for _, pair in df.groupby(keys):
-    if set(pair.method) != {"hungarian", "group_lingam"} or pair.dataset_sha256.nunique() != 1:
+    if set(pair.method) not in ({"hungarian", "group_lingam"}, {"hungarian"}) or pair.dataset_sha256.nunique() != 1:
         raise ValueError("Unpaired benchmark datasets")
 df.sort_values(keys+["method"]).to_csv(snakemake.output[0], index=False)
