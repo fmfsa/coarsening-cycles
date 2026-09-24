@@ -36,7 +36,7 @@ Without R, the d=10 main grid and threshold-sensitivity sweep still run; only `s
 
 ## Reproducing the paper figures
 
-All four figures from the paper come out of one Snakemake pipeline:
+All figures from the paper come out of one Snakemake pipeline:
 
 | Paper figure | File produced |
 |---|---|
@@ -44,6 +44,7 @@ All four figures from the paper come out of one Snakemake pipeline:
 | Fig. 4 — scalability vs disjointCycles (`scalability_disjointcycles.pdf`) | `src/expt/workflow/results/scalability_disjointcycles.pdf` |
 | Fig. 5 (App. C.1) — strict disjoint-cycles micro experiment | `src/expt/workflow/results/disjoint_micro.pdf` |
 | Fig. 6 (App. C.2) — threshold sensitivity | `src/expt/workflow/results/synth_threshold.pdf` |
+| App. B.6 — sample-complexity corroboration of Prop. 3 | `src/expt/workflow/results/sample_complexity.pdf` |
 
 To reproduce all of them:
 
@@ -102,6 +103,9 @@ snakemake results/split_merge.pdf results/threshold_split_merge.pdf --cores all
 
 # Whole-SCC hard-intervention experiment
 snakemake results/intervention_effects.csv results/intervention_effects.pdf --cores all
+
+# Sample-complexity corroboration of Prop. 3 (App. B.6; ICLR Fig. 5)
+snakemake results/sample_complexity.pdf --cores all
 ```
 
 ## Experiment grids

@@ -14,3 +14,4 @@ rule all:
         "results/scalability_disjointcycles.pdf",
         "results/disjoint_micro.pdf",
         "results/synth_threshold.pdf",
+        "results/sample_complexity.pdf",
