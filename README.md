@@ -95,7 +95,8 @@ paper figures); build them explicitly:
 cd src/expt/workflow
 
 # Original candidate-selection grid and scalability diagnostic.
-# For the paper's final d=20, 30-seed table, use docs/ablation_d20.md.
+# For the paper's final d=20, 30-seed table, see "d=20 candidate-selection
+# ablation" below.
 snakemake results/synth_ablation.csv results/synth_ablation_scal.csv results/ablation_selection.pdf --cores all
 
 # Split/merge failure-mode diagnostics (default tau, plus the threshold sweep)
@@ -240,14 +241,17 @@ src/
     metrics.py              # Split/merge partition diagnostics
     intervention.py         # Whole-SCC hard interventions + block regression
     examples.py             # Hard-coded SEMs from the literature (e.g. Lacerda 2008)
-  expt/workflow/            # Snakemake pipeline
-    Snakefile               # Top-level: lists the four paper figures as targets
-    rules/synth.smk         # Main + scalability + disjoint-micro grids
-    rules/threshold.smk     # Threshold-sensitivity sweep
-    rules/ablation.smk      # Candidate-selection ablation (+ cost arm)
-    rules/intervention.smk  # Whole-SCC intervention experiment
-    scripts/                # generate / fit / evaluate / collect / plot_*
-    results/                # Outputs (created on first run)
+  expt/
+    config/ablation_d20.json  # d=20 selection-ablation configuration
+    workflow/               # Snakemake pipeline
+      Snakefile             # Top-level: lists the four paper figures as targets
+      rules/synth.smk       # Main + scalability + disjoint-micro grids
+      rules/threshold.smk   # Threshold-sensitivity sweep
+      rules/ablation.smk    # Candidate-selection ablation (+ cost arm)
+      rules/intervention.smk  # Whole-SCC intervention experiment
+      scripts/              # generate / fit / evaluate / collect / plot_*
+      results/              # Outputs; paper data are committed, the rest is gitignored
+scripts/                    # d=20 ablation runner/report; figure replotting
 tests/
   test_repare_cycle.py
   test_lingd.py             # Candidate selection, enumeration limits, timing
@@ -262,35 +266,75 @@ tests/
 pytest tests/
 ```
 
-## Paper figure regeneration and d=20 selection timing
+## Paper figures from saved data
 
-To regenerate Figures 3 and 5 from saved data without rerunning fits, and to run
-the four-method d=20 selection ablation with separate ICA/selection timers:
-
-```bash
-.venv/bin/python scripts/regenerate_paper_figures.py
-bash scripts/run_ablation_d20.sh
-.venv/bin/python scripts/report_selection_ablation.py
-```
-
-Additional saved-data plots can be selected explicitly:
+`scripts/regenerate_paper_figures.py` replots figures from committed CSVs
+without launching any fits (missing data raise an explicit error). Output goes
+to `output/pdf/`.
 
 ```bash
+.venv/bin/python scripts/regenerate_paper_figures.py              # Figs 3 and 5
 .venv/bin/python scripts/regenerate_paper_figures.py --figures 4 7 8
 ```
 
-These correspond to `scalability_disjointcycles.pdf`, `disjoint_micro.pdf`, and
-`synth_threshold.pdf` under `output/pdf/`. Figures 4 and 7 require the saved
-`src/expt/workflow/results/synth_scalability.csv` and `synth_disjoint.csv` files;
-use `--fig4-data PATH` and `--fig7-data PATH` if they are stored elsewhere.
-Figure 8 uses the archived 300-row snapshot in
-`data/reference/synth_threshold.csv.gz`, with provenance recorded beside it.
-Use `--figures 8` to regenerate only that available snapshot. No fitting jobs
-are launched by this script; missing saved data cause an explicit error.
+| Fig. | Data (under `src/expt/workflow/results/`) | Output |
+|---|---|---|
+| 3 | `paper_fig3.csv.gz` | `fig3_main.pdf` |
+| 4 | `synth_scalability.csv` | `scalability_disjointcycles.pdf` |
+| 5 | `sample_complexity.csv` | `fig5_sample_complexity.pdf` |
+| 7 | `synth_disjoint.csv` | `disjoint_micro.pdf` |
+| 8 | `synth_threshold.csv` | `synth_threshold.pdf` |
 
-See [the experiment protocol and output guide](docs/ablation_d20.md) for the grid,
-timing boundaries, truncation diagnostics, exact-recovery definition, and resume
-commands. The paper's d=20 ablation uses one configuration,
-`config/ablation_d20.json`: 30 seeds per setting, no candidate-count cap, and a
-60-second total enumeration budget per dataset. Its measurements are in
-`src/expt/workflow/results/ablation_d20/`; the table is `output/pdf/ablation_d20_table.pdf`.
+Use `--fig{N}-data PATH` to point at data stored elsewhere.
+`paper_fig3.csv.gz` is a 1,440-row snapshot (first-stable; 2 regimes × 8 sample
+sizes × κ ∈ {3,4,5} × density ∈ {0.3,0.5,0.8} × 10 seeds), combining 900
+historical cells at n ≤ 5000 with 540 later extension cells. Absolute runtimes
+are not comparable across those two batches.
+
+## d=20 candidate-selection ablation (paper table)
+
+A standalone runner, outside Snakemake, with separate ICA and selection timers.
+Configuration: `src/expt/config/ablation_d20.json`. Measurements:
+`src/expt/workflow/results/ablation_d20/`. It was run on Python 3.11; besides
+the package it needs `pandas matplotlib seaborn pytest`.
+
+```bash
+bash scripts/run_ablation_d20.sh                         # fits; single-threaded BLAS
+.venv/bin/python scripts/report_selection_ablation.py   # table -> output/pdf/ablation_d20_table*
+.venv/bin/python scripts/compare_ablation_selection.py --input src/expt/workflow/results/ablation_d20
+```
+
+The report and the paired comparison read saved measurements only. The runner
+resumes a results directory only if configuration, source hashes and
+environment all match `protocol.json`; the committed copy has its `machine`
+field blanked, so collect fresh timings in a new directory
+(`run_ablation_d20.sh --output DIR`, then `report_selection_ablation.py --input DIR --output FILE.pdf`).
+
+**Setup.** d=20, κ=5 nontrivial SCCs, density 0.5, Laplace noise; stable and
+unstable (spectral radius rescaled to 1.5) regimes; n ∈ {10,000, 50,000};
+seeds 0–29 (120 datasets). One FastICA estimate per dataset (max_iter=10,000,
+tol=1e-6, random_state=0) is shared by all four methods. Thresholds start at
+0.1; if no candidate is found the W threshold is halved down to 0.01. Enumeration
+has no candidate-count cap and a 60 s total budget per dataset, shared across
+threshold rounds.
+
+**Methods.** Enumeration + first-stable (falls back to the first unstable
+candidate), enumeration + uniform random (samples the returned, possibly
+timeout-truncated, list), ours (Hungarian assignment; no enumeration), and a
+control of arbitrary row permutations without admissibility constraints. The
+two randomized methods use five draws per dataset.
+
+**Measurement.** ICA time covers fitting and retries after imports. Selection
+time covers enumeration and stability checks; the shared enumeration cost is
+charged to both enumeration methods. Data generation, scoring and I/O are
+excluded, and branch order rotates across seeds. Draws are averaged within a
+dataset before aggregating over seeds; ARI and exact recovery (SCC partition
+*and* condensation edges correct) are means, times are medians. A missing
+estimate has missing, not zero, accuracy. Bold selection times in the table mark
+a median paired selection/ICA ratio above one.
+
+**Files.** `protocol.json` (config, source hashes, environment, threads);
+per-dataset `result.json` and `estimate.npz` (ICA estimate and ground truth);
+`draws.csv`, `cells.csv`, `summary.csv` (draw-, dataset- and aggregate-level);
+`verification.json` (run checks: timeouts, missing estimates, largest candidate
+list, control admissibility).
