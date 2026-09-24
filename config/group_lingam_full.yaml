@@ -6,8 +6,9 @@ group_lingam_full:
   # GroupLiNGAM is fitted only for n <= this; ours runs on every size.
   # A serial n=2000 fit took ~28 min on the server; n=10000 would need ~1 day per fit.
   group_lingam_max_n: 1000
-  # Concurrent single-threaded timed fits (both methods share the same slots).
-  parallel_fits: 8
+  # Concurrent single-threaded timed fits. 8 slots slowed GroupLiNGAM ~3.6x
+  # (serial n=1000 seed 2: 278 s vs 996 s), so the paper run is serial.
+  parallel_fits: 1
   timeout_by_n:
     100: 600
     500: 600

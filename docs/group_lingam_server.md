@@ -106,7 +106,7 @@ echo $! > logs/group_lingam_full.pid
 On a managed cluster, use the same `bash scripts/run_group_lingam_full.sh`
 command inside its batch scheduler instead of running on a login node.
 The launcher sets one numerical thread per fit and runs up to
-`parallel_fits` (8) single-threaded jobs concurrently; both methods share the
+`parallel_fits` (1) single-threaded jobs concurrently; both methods share the
 same slots, so each method's fits compete for the machine in the same way.
 Set `parallel_fits: 1` for the strict one-fit-at-a-time protocol.
 
