@@ -3,7 +3,7 @@
 Three panels (one row): ARI of the recovered SCC partition (left),
 F1 of the recovered cluster-DAG edges (middle), and the size of the
 estimated partition |Π̂| as a sanity diagnostic for the two failure
-modes of Prop. 3 (right):
+modes of Prop. 2 (right):
 
   - very small τ ⇒ |Π̂| collapses to 1: too many spurious edges close
     paths between distinct true SCCs, merging everything (Mode b).
@@ -54,11 +54,11 @@ samp_sizes = sorted([n for n in df["samp_size"].unique() if n in N_PALETTE])
 
 # Three explicit panels; each gets a distinct y-axis (no sharey).
 PANELS = [
-    ("ari_scc", r"ARI $\uparrow$" "\n" r"(SCC partition)", False, (-0.05, 1.05)),
-    ("fscore", r"$F_1$ $\uparrow$" "\n" r"(cluster DAG)", False, (-0.05, 1.05)),
+    ("ari_scc", (r"ARI $\uparrow$" "\n(SCC partition)"), False, (-0.05, 1.05)),
+    ("fscore", (r"$F_1$ $\uparrow$" "\n(cluster-DAG)"), False, (-0.05, 1.05)),
     (
         "num_parts_est",
-        r"$|\widehat{\Pi}|$" "\n" r"(number of estimated clusters)",
+        (r"$|\widehat{\Pi}|$" "\n(number of estimated clusters)"),
         False,
         None,
     ),

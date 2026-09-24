@@ -66,9 +66,9 @@ num_cols = ["ari_scc", "fscore", "var_fscore", "split_rate", "merge_rate"]
 cells = df.groupby(CELL, as_index=False)[num_cols].mean()
 
 ROWS = [
-    ("ari_scc", "ARI ↑\n(SCC partition)"),
-    ("fscore", "F₁ ↑\n(cluster DAG)"),
-    ("var_fscore", "F₁ ↑\n(variable-level DAG)"),
+    ("ari_scc", (r"ARI $\uparrow$" "\n(SCC partition)")),
+    ("fscore", (r"$F_1$ $\uparrow$" "\n(cluster-DAG)")),
+    ("var_fscore", (r"$F_1$ $\uparrow$" "\n(variable-level graph)")),
 ]
 REGIMES = ["stable", "unstable"]
 

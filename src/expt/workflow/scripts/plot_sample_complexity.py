@@ -16,7 +16,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from matplotlib.lines import Line2D
 from scipy import stats
 
 ROSE_WINE = {
@@ -96,7 +95,7 @@ ax.plot(
     color=ROSE_WINE["deep_wine"],
     markersize=8,
     linewidth=2.4,
-    label=r"empirical $\mathbb{E}[d_H(\hat S, S)]$",
+    label="mean Hamming distance",
 )
 
 # Slope-fit region: drop cells where the failure rate is below 2% (in
@@ -126,7 +125,7 @@ if len(anchor_df) > 0:
         color="0.4",
         linestyle=(0, (4, 2)),
         linewidth=1.6,
-        label=r"slope $-2$ (Prop. 4)",
+        label=r"slope $-2$ (Prop. 3)",
     )
 
 if len(nz_filt) >= 2:
@@ -146,7 +145,7 @@ if len(nz_filt) >= 2:
 ax.set_xscale("log")
 ax.set_yscale("log")
 ax.set_xlabel(r"sample size $n$")
-ax.set_ylabel(r"$\mathbb{E}[\,d_H(\mathrm{supp}(\hat B),\, \mathrm{supp}(B))\,]$")
+ax.set_ylabel(r"$\mathbb{E}[\,d_H(\mathrm{supp}(\widehat{B}),\, \mathrm{supp}(B))\,]$")
 ax.legend(frameon=False, fontsize=14, loc="upper right")
 
 # Right: P[exact support recovery error] vs n with Wilson CI bands.
@@ -169,7 +168,7 @@ ax.plot(
 )
 ax.set_xscale("log")
 ax.set_xlabel(r"sample size $n$")
-ax.set_ylabel(r"$\Pr[\,\mathrm{supp}(\hat B_n) = \mathrm{supp}(B)\,]$")
+ax.set_ylabel(r"$\Pr[\,\mathrm{supp}(\widehat{B}_n) = \mathrm{supp}(B)\,]$")
 ax.set_ylim(-0.05, 1.05)
 
 fig.tight_layout()

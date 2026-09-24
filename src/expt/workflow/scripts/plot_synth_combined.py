@@ -56,9 +56,9 @@ num_cycles_vals = sorted(df["num_cycles"].unique())
 n_cols = max(len(num_cycles_vals), 1)
 
 ROWS = [
-    ("ari_scc", "ARI ↑\n(SCC partition)"),
-    ("fscore", "F₁ ↑\n(cluster DAG)"),
-    ("var_fscore", "F₁ ↑\n(variable-level DAG)"),
+    ("ari_scc", (r"ARI $\uparrow$" "\n(SCC partition)")),
+    ("fscore", (r"$F_1$ $\uparrow$" "\n(cluster-DAG)")),
+    ("var_fscore", (r"$F_1$ $\uparrow$" "\n(variable-level graph)")),
 ]
 
 fig, axes = plt.subplots(len(ROWS), n_cols, figsize=(5.4 * n_cols, 12), sharey="row")
