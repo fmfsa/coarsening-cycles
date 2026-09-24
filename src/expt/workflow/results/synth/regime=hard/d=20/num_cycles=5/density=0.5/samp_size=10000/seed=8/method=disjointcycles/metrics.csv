@@ -1,0 +1,2 @@
+method,regime,num_cycles,density,samp_size,seed,d,num_nodes,threshold,ari_scc,fscore,var_precision,var_recall,var_fscore,var_shd,inter_scc_precision,inter_scc_recall,inter_scc_fscore,chosen_threshold,chosen_beta,bic_score,runtime_sec,num_sccs,max_scc_size,num_nontrivial,frac_nontrivial,has_cycles,num_parts_est
+disjointcycles,hard,5,0.5,10000,8,20,20,,0.11926835379604109,0.5882352941176471,0.5666666666666667,0.3434343434343434,0.42767295597484273,91,0.5384615384615384,0.345679012345679,0.42105263157894735,,,,5.759357342030853,7,6,5,0.9,1,2
