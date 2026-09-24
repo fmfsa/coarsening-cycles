@@ -1,0 +1,24 @@
+{
+  "dataset_attempts": 120,
+  "branch_draw_records": 1440,
+  "ICA_warnings": 0,
+  "enumeration_timeouts": 16,
+  "no_enumeration_estimate": [
+    {
+      "regime": "unstable",
+      "n": 10000,
+      "seed": 20
+    },
+    {
+      "regime": "unstable",
+      "n": 50000,
+      "seed": 20
+    }
+  ],
+  "largest_candidate_list": 30336,
+  "control_draws": 600,
+  "admissible_control_draws": 0,
+  "exact_control_draws": 0,
+  "selection_exceeds_ICA_datasets": 115,
+  "same_data_as_original_for_seeds_0_to_9": true
+}

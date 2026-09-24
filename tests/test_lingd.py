@@ -1,4 +1,4 @@
-"""Tests for the staged LiNG-D pipeline.
+"""Tests for LiNG-D candidate selection, enumeration limits, and timing fields.
 
 Verifies that ``run_lingd`` equals the explicit composition of
 ``fit_ica_unmixing`` → (``enumerate_admissible_candidates`` →
@@ -145,6 +145,23 @@ def test_enumeration_empty_case_uses_hungarian_precheck():
     assert out["stable"] == [] and out["unstable"] == []
     assert out["enumeration_cap_hit"] is False
     assert out["enumeration_timed_out"] is False
+
+
+def test_enumeration_without_count_cap_can_exceed_ten_thousand():
+    # Eight fully connected rows admit 8! = 40,320 permutations.
+    W = np.random.default_rng(42).uniform(0.5, 1.0, size=(8, 8))
+    out = enumerate_admissible_candidates(W, max_perms=None)
+    assert out["n_candidates_enumerated"] == 40320
+    assert not out["enumeration_cap_hit"]
+    assert not out["enumeration_timed_out"]
+
+
+def test_uncapped_enumeration_still_obeys_time_budget():
+    W = np.random.default_rng(42).uniform(0.5, 1.0, size=(8, 8))
+    out = enumerate_admissible_candidates(W, max_perms=None, time_budget_sec=0.0)
+    assert out["enumeration_timed_out"]
+    assert not out["enumeration_cap_hit"]
+    assert out["n_candidates_enumerated"] == 0
 
 
 def test_enumeration_time_budget_flags_truncation():

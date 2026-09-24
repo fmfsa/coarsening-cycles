@@ -83,14 +83,16 @@ nz = agg[agg["mean_hamming"] > 0].copy()
 ax = axes[0]
 # 95% normal-approximation CI using SEM on the mean — for small samples this
 # under-covers, but it's the right order-of-magnitude visualisation.
-sem_lo = (agg["mean_hamming"] - 1.96 * agg["sem_hamming"]).clip(lower=1e-3)
-sem_hi = (agg["mean_hamming"] + 1.96 * agg["sem_hamming"]).clip(lower=1e-3)
+sem_lo = (nz["mean_hamming"] - 1.96 * nz["sem_hamming"]).clip(lower=1e-3)
+sem_hi = (nz["mean_hamming"] + 1.96 * nz["sem_hamming"]).clip(lower=1e-3)
+# Exact-zero means cannot appear on a logarithmic axis. Show their exact
+# recovery in the right panel, without a spurious line down to the plot floor.
 ax.fill_between(
-    agg["n"], sem_lo, sem_hi, color=ROSE_WINE["rose"], alpha=0.25, linewidth=0
+    nz["n"], sem_lo, sem_hi, color=ROSE_WINE["rose"], alpha=0.25, linewidth=0
 )
 ax.plot(
     agg["n"],
-    agg["mean_hamming"],
+    agg["mean_hamming"].where(agg["mean_hamming"] > 0),
     "-o",
     color=ROSE_WINE["deep_wine"],
     markersize=8,

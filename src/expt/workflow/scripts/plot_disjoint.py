@@ -78,10 +78,14 @@ for ax, (ycol, ylabel, ylog) in zip(axes, PANELS):
         y=ycol,
         hue="method",
         hue_order=method_order,
+        style="method",
+        style_order=method_order,
+        dashes={"ours": "", "disjointCycles": (4, 2)},
         palette=METHOD_COLOUR,
         markers=False,
         estimator="median",
         errorbar=("ci", 95),
+        seed=0,
         linewidth=2.0,
         ax=ax,
         legend=False,
@@ -95,7 +99,9 @@ for ax, (ycol, ylabel, ylog) in zip(axes, PANELS):
     ax.set_ylabel(ylabel)
 
 method_handles = [
-    Line2D([0], [0], color=METHOD_COLOUR[m], lw=2.4, label=m) for m in method_order
+    Line2D([0], [0], color=METHOD_COLOUR[m], lw=2.4,
+           linestyle="-" if m == "ours" else (0, (4, 2)), label=m)
+    for m in method_order
 ]
 fig.legend(
     handles=method_handles,

@@ -79,6 +79,7 @@ for ax, (ycol, ylabel, ylog, ylim) in zip(axes, PANELS):
             color=N_PALETTE[n],
             estimator="median",
             errorbar=("ci", 95),
+            seed=0,
             marker="o",
             markersize=8,
             linewidth=2.4,
