@@ -28,13 +28,15 @@ BRANCH_DASH = {
 
 sns.set_context("paper", font_scale=2.0)
 sns.set_style("white")
-plt.rcParams.update({
-    "axes.spines.top": False,
-    "axes.spines.right": False,
-})
+plt.rcParams.update(
+    {
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+    }
+)
 
 try:
-    csv_path = snakemake.input[0]   # type: ignore[name-defined]
+    csv_path = snakemake.input[0]  # type: ignore[name-defined]
     pdf_path = snakemake.output[0]  # type: ignore[name-defined]
 except NameError:
     csv_path = "results/synth_ablation.csv"
@@ -43,10 +45,15 @@ except NameError:
 df = pd.read_csv(csv_path)
 
 df["branch"] = df["method"].map(
-    lambda m: "first-stable" if m == "abl_first_stable"
-    else "hungarian" if m == "abl_hungarian"
-    else "random-matching" if m.startswith("abl_randhun")
-    else "random-enumerated"
+    lambda m: (
+        "first-stable"
+        if m == "abl_first_stable"
+        else "hungarian"
+        if m == "abl_hungarian"
+        else "random-matching"
+        if m.startswith("abl_randhun")
+        else "random-enumerated"
+    )
 )
 # The enumeration+random-pick branches are not part of the reported ablation.
 df = df[df["branch"] != "random-enumerated"]
@@ -59,9 +66,9 @@ num_cols = ["ari_scc", "fscore", "var_fscore", "split_rate", "merge_rate"]
 cells = df.groupby(CELL, as_index=False)[num_cols].mean()
 
 ROWS = [
-    ("ari_scc", "ARI ↑ — SCC partition"),
-    ("fscore", "F₁ ↑ — cluster DAG"),
-    ("var_fscore", "F₁ ↑ — variable-level DAG"),
+    ("ari_scc", "ARI ↑\n(SCC partition)"),
+    ("fscore", "F₁ ↑\n(cluster DAG)"),
+    ("var_fscore", "F₁ ↑\n(variable-level DAG)"),
 ]
 REGIMES = ["stable", "unstable"]
 
@@ -74,12 +81,20 @@ for j, regime in enumerate(REGIMES):
     for i, (ycol, ylabel) in enumerate(ROWS):
         ax = axes[i, j]
         sns.lineplot(
-            data=sub, x="samp_size", y=ycol,
-            hue="branch", style="branch",
-            palette=BRANCH_COLOR, dashes=BRANCH_DASH, markers=True,
-            estimator="median", errorbar=("ci", 95),
-            linewidth=2.4, markersize=8,
-            ax=ax, legend=(i == 0 and j == 0),
+            data=sub,
+            x="samp_size",
+            y=ycol,
+            hue="branch",
+            style="branch",
+            palette=BRANCH_COLOR,
+            dashes=BRANCH_DASH,
+            markers=True,
+            estimator="median",
+            errorbar=("ci", 95),
+            linewidth=2.4,
+            markersize=8,
+            ax=ax,
+            legend=(i == 0 and j == 0),
         )
         ax.set_xscale("log")
         ax.set_ylim(-0.05, 1.05)
@@ -91,9 +106,15 @@ for j, regime in enumerate(REGIMES):
 leg = axes[0, 0].get_legend()
 if leg is not None:
     axes[0, 0].legend(
-        leg.legend_handles, [t.get_text() for t in leg.get_texts()],
-        loc="lower right", frameon=False, fontsize=15,
-        handlelength=2.0, handletextpad=0.5, labelspacing=0.3, borderpad=0.3,
+        leg.legend_handles,
+        [t.get_text() for t in leg.get_texts()],
+        loc="lower right",
+        frameon=False,
+        fontsize=15,
+        handlelength=2.0,
+        handletextpad=0.5,
+        labelspacing=0.3,
+        borderpad=0.3,
         title=None,
     )
 

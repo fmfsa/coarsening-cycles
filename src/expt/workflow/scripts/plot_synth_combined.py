@@ -12,18 +12,20 @@ import pandas as pd
 import seaborn as sns
 
 ROSE_WINE = {
-    "pale_rose":  "#E9C5C2",   # sparsest / lightest end
-    "rose":       "#AE6B91",   # mid
-    "deep_wine":  "#2C1E3D",   # densest / near-black
+    "pale_rose": "#E9C5C2",  # sparsest / lightest end
+    "rose": "#AE6B91",  # mid
+    "deep_wine": "#2C1E3D",  # densest / near-black
 }
 
 sns.set_palette([ROSE_WINE["pale_rose"], ROSE_WINE["rose"], ROSE_WINE["deep_wine"]])
 sns.set_context("paper", font_scale=2.3)
 sns.set_style("white")
-plt.rcParams.update({
-    "axes.spines.top":   False,
-    "axes.spines.right": False,
-})
+plt.rcParams.update(
+    {
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+    }
+)
 
 # Density encoded by lightness (sparser = lighter), regime by linestyle.
 DENSITY_COLOR = {
@@ -32,12 +34,12 @@ DENSITY_COLOR = {
     0.8: ROSE_WINE["deep_wine"],
 }
 REGIME_DASH = {
-    "stable":   (1, 0),       # solid
-    "unstable": (4, 2),       # dashed
+    "stable": (1, 0),  # solid
+    "unstable": (4, 2),  # dashed
 }
 
 try:
-    csv_path = snakemake.input[0]   # type: ignore[name-defined]
+    csv_path = snakemake.input[0]  # type: ignore[name-defined]
     pdf_path = snakemake.output[0]  # type: ignore[name-defined]
 except NameError:
     csv_path = "results/synth_results.csv"
@@ -54,9 +56,9 @@ num_cycles_vals = sorted(df["num_cycles"].unique())
 n_cols = max(len(num_cycles_vals), 1)
 
 ROWS = [
-    ("ari_scc",    "ARI ↑ — SCC partition"),
-    ("fscore",     "F₁ ↑ — cluster DAG"),
-    ("var_fscore", "F₁ ↑ — variable-level DAG"),
+    ("ari_scc", "ARI ↑\n(SCC partition)"),
+    ("fscore", "F₁ ↑\n(cluster DAG)"),
+    ("var_fscore", "F₁ ↑\n(variable-level DAG)"),
 ]
 
 fig, axes = plt.subplots(len(ROWS), n_cols, figsize=(5.4 * n_cols, 12), sharey="row")
@@ -68,14 +70,20 @@ for j, kappa in enumerate(num_cycles_vals):
     for i, (ycol, ylabel) in enumerate(ROWS):
         ax = axes[i, j]
         sns.lineplot(
-            data=sub, x="samp_size", y=ycol,
-            hue="density", style="regime",
+            data=sub,
+            x="samp_size",
+            y=ycol,
+            hue="density",
+            style="regime",
             palette=DENSITY_COLOR,
             dashes=REGIME_DASH,
             markers=True,
-            estimator="median", errorbar=("ci", 95),
-            linewidth=2.4, markersize=8,
-            ax=ax, legend=(i == 0 and j == 0),
+            estimator="median",
+            errorbar=("ci", 95),
+            linewidth=2.4,
+            markersize=8,
+            ax=ax,
+            legend=(i == 0 and j == 0),
         )
         ax.set_xscale("log")
         ax.set_ylim(-0.05, 1.05)
@@ -91,9 +99,12 @@ leg = axes[0, 0].get_legend()
 if leg is not None:
     leg.set_frame_on(False)
     axes[0, 0].legend(
-        leg.legend_handles, [t.get_text() for t in leg.get_texts()],
-        loc="lower right", frameon=False, ncol=1,
-        fontsize=18,           # was "small" (≈ font_scale × default = ~21pt); now fixed
+        leg.legend_handles,
+        [t.get_text() for t in leg.get_texts()],
+        loc="lower right",
+        frameon=False,
+        ncol=1,
+        fontsize=18,  # was "small" (≈ font_scale × default = ~21pt); now fixed
         handlelength=2.0,
         handletextpad=0.5,
         labelspacing=0.3,

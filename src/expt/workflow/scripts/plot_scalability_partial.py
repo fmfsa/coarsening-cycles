@@ -25,9 +25,9 @@ import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 import pandas as pd
 import seaborn as sns
+from matplotlib.lines import Line2D
 
 HERE = Path(__file__).resolve().parent
 WORKFLOW_ROOT = HERE.parent
@@ -41,14 +41,14 @@ out_path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_OUT
 # Three-step rose-to-wine ramp keyed by d. Hand-picked to read clearly
 # alongside the main results figure (which uses density as a similar ramp).
 D_PALETTE = {
-    20:  "#D9A6BB",   # light rose
-    50:  "#AE6B91",   # rose
-    100: "#5C2E48",   # deep wine
+    20: "#D9A6BB",  # light rose
+    50: "#AE6B91",  # rose
+    100: "#5C2E48",  # deep wine
 }
 
 METHOD_DASH = {
-    "ours":           "",        # solid
-    "disjointCycles": (4, 2),    # dashed
+    "ours": "",  # solid
+    "disjointCycles": (4, 2),  # dashed
 }
 METHOD_LABEL = {"lacerda": "ours", "disjointcycles": "disjointCycles"}
 
@@ -57,8 +57,14 @@ def _collect_metrics() -> pd.DataFrame:
     """Concatenate every metrics.csv on disk under the scalability slice."""
     pattern = str(
         RESULTS_ROOT
-        / "regime=hard" / "d=*" / "num_cycles=10" / "density=0.5"
-        / "samp_size=*" / "seed=*" / "method=*" / "metrics.csv"
+        / "regime=hard"
+        / "d=*"
+        / "num_cycles=10"
+        / "density=0.5"
+        / "samp_size=*"
+        / "seed=*"
+        / "method=*"
+        / "metrics.csv"
     )
     paths = glob.glob(pattern)
     if not paths:
@@ -83,10 +89,12 @@ def _collect_metrics() -> pd.DataFrame:
 def _render(df: pd.DataFrame, out_path: Path) -> None:
     sns.set_context("paper", font_scale=2.3)
     sns.set_style("white")
-    plt.rcParams.update({
-        "axes.spines.top":   False,
-        "axes.spines.right": False,
-    })
+    plt.rcParams.update(
+        {
+            "axes.spines.top": False,
+            "axes.spines.right": False,
+        }
+    )
 
     df = df.copy()
     df["method"] = df["method"].map(METHOD_LABEL)
@@ -96,30 +104,35 @@ def _render(df: pd.DataFrame, out_path: Path) -> None:
 
     # Keep only sample sizes that every plotted d has, so all lines share
     # an x-range. Cells with n < d are skipped upstream (ICA-ill-posed).
-    _n_per_d = {dd: set(df.loc[df["d"] == dd, "samp_size"].unique())
-                for dd in d_order}
+    _n_per_d = {dd: set(df.loc[df["d"] == dd, "samp_size"].unique()) for dd in d_order}
     _common_n = set.intersection(*_n_per_d.values()) if _n_per_d else set()
     df = df[df["samp_size"].isin(_common_n)]
 
     PANELS = [
-        ("ari_scc",     r"ARI $\uparrow$ — SCC partition", False),
-        ("fscore",      r"$F_1$ $\uparrow$ — cluster DAG", False),
-        ("runtime_sec", r"fit time (s) $\downarrow$",      True),
+        ("ari_scc", r"ARI $\uparrow$" "\n(SCC partition)", False),
+        ("fscore", r"$F_1$ $\uparrow$" "\n(cluster DAG)", False),
+        ("runtime_sec", r"fit time (s) $\downarrow$", True),
     ]
 
     fig, axes = plt.subplots(1, len(PANELS), figsize=(18.0, 5.2))
 
     for ax, (ycol, ylabel, ylog) in zip(axes, PANELS):
         sns.lineplot(
-            data=df, x="samp_size", y=ycol,
-            hue="d", style="method",
-            hue_order=d_order, style_order=method_order,
+            data=df,
+            x="samp_size",
+            y=ycol,
+            hue="d",
+            style="method",
+            hue_order=d_order,
+            style_order=method_order,
             palette=D_PALETTE,
             dashes={"ours": "", "disjointCycles": (4, 2)},
             markers=False,
-            estimator="median", errorbar=("ci", 95),
+            estimator="median",
+            errorbar=("ci", 95),
             linewidth=2.0,
-            ax=ax, legend=False,
+            ax=ax,
+            legend=False,
         )
         ax.set_xscale("log")
         if ylog:
@@ -131,18 +144,23 @@ def _render(df: pd.DataFrame, out_path: Path) -> None:
 
     # Single shared legend split into two groups: d (colour) and method (style).
     d_handles = [
-        Line2D([0], [0], color=D_PALETTE[d], lw=2.4, label=rf"$d={d}$")
-        for d in d_order
+        Line2D([0], [0], color=D_PALETTE[d], lw=2.4, label=rf"$d={d}$") for d in d_order
     ]
     method_handles = [
-        Line2D([0], [0], color="0.25", lw=2.0,
-               linestyle="-",  label="ours"),
-        Line2D([0], [0], color="0.25", lw=2.0,
-               linestyle=(0, (4, 2)), label="disjointCycles"),
+        Line2D([0], [0], color="0.25", lw=2.0, linestyle="-", label="ours"),
+        Line2D(
+            [0],
+            [0],
+            color="0.25",
+            lw=2.0,
+            linestyle=(0, (4, 2)),
+            label="disjointCycles",
+        ),
     ]
     fig.legend(
         handles=d_handles + method_handles,
-        loc="upper center", bbox_to_anchor=(0.5, 1.04),
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.04),
         ncol=len(d_handles) + len(method_handles),
         frameon=False,
         fontsize=18,
@@ -167,7 +185,9 @@ def _coverage_summary(df: pd.DataFrame) -> str:
         for dd in sorted(msub["d"].unique()):
             dsub = msub[msub["d"] == dd]
             counts_by_n = dsub.groupby("samp_size")["seed"].nunique().to_dict()
-            cell_str = ", ".join(f"n={n}: {c}/10" for n, c in sorted(counts_by_n.items()))
+            cell_str = ", ".join(
+                f"n={n}: {c}/10" for n, c in sorted(counts_by_n.items())
+            )
             lines.append(f"  {method:<16s} d={dd:<3d}  {cell_str}")
     return "\n".join(lines)
 
