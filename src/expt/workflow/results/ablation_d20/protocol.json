@@ -1,0 +1,50 @@
+{
+  "protocol": {
+    "config": {
+      "d": 20,
+      "num_cycles": 5,
+      "density": 0.5,
+      "noise_dist": "laplace",
+      "regimes": [
+        "hard",
+        "unstable"
+      ],
+      "sample_sizes": [
+        10000,
+        50000
+      ],
+      "seeds": 30,
+      "random_draws": 5,
+      "threshold": 0.1,
+      "ica_max_iter": 10000,
+      "ica_tolerance": 1e-06,
+      "ica_random_state": 0,
+      "max_perms": null,
+      "enumeration_budget_sec": 60.0,
+      "enumeration_budget_scope": "total"
+    },
+    "source_hashes": {
+      "run_selection_ablation.py": "d4b4d8c99d2cbb1b02935f7e7f92059075438a3a241b1ef469bded2845001d13",
+      "lingd.py": "8ff11766482fb2ead0c8371cc522ded2a12b14a8640e507844455e043cbee2c6",
+      "graph.py": "3e6a57f1afb3a4c7279c463c5a0ec9c47d732960eef1dfcf2903ce7e7654af72"
+    },
+    "platform": "macOS-26.7-arm64-arm-64bit",
+    "machine": "",
+    "python": "3.11.15",
+    "packages": {
+      "numpy": "2.2.6",
+      "scipy": "1.13.1",
+      "scikit-learn": "1.9.1",
+      "networkx": "3.6.1",
+      "pandas": "3.0.6"
+    },
+    "threads": {
+      "OPENBLAS_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1"
+    }
+  },
+  "git_commit": "b3e3279bbc4eacbd5ed528e758fd0fb591637939",
+  "timing": "preloaded imports; one shared ICA; selection excludes scoring and I/O"
+}

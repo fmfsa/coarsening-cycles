@@ -80,6 +80,7 @@ for j, kappa in enumerate(num_cycles_vals):
             markers=True,
             estimator="median",
             errorbar=("ci", 95),
+            seed=0,
             linewidth=2.4,
             markersize=8,
             ax=ax,

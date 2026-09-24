@@ -94,8 +94,8 @@ paper figures); build them explicitly:
 ```bash
 cd src/expt/workflow
 
-# Candidate-selection ablation: every branch shares one FastICA estimate per
-# dataset (verified via stored W hashes), so differences isolate selection.
+# Original candidate-selection grid and scalability diagnostic.
+# For the paper's final d=20, 30-seed table, use docs/ablation_d20.md.
 snakemake results/synth_ablation.csv results/synth_ablation_scal.csv results/ablation_selection.pdf --cores all
 
 # Split/merge failure-mode diagnostics (default tau, plus the threshold sweep)
@@ -250,7 +250,8 @@ src/
     results/                # Outputs (created on first run)
 tests/
   test_repare_cycle.py
-  test_lingd_refactor.py    # Staged API ≡ run_lingd; safeguard behaviour
+  test_lingd.py             # Candidate selection, enumeration limits, timing
+  test_selection_ablation.py # Exact recovery, seed aggregation, shared budget
   test_metrics.py           # Split/merge diagnostics
   test_intervention.py      # Convention check, Monte Carlo, block regression
 ```
@@ -260,3 +261,36 @@ tests/
 ```bash
 pytest tests/
 ```
+
+## Paper figure regeneration and d=20 selection timing
+
+To regenerate Figures 3 and 5 from saved data without rerunning fits, and to run
+the four-method d=20 selection ablation with separate ICA/selection timers:
+
+```bash
+.venv/bin/python scripts/regenerate_paper_figures.py
+bash scripts/run_ablation_d20.sh
+.venv/bin/python scripts/report_selection_ablation.py
+```
+
+Additional saved-data plots can be selected explicitly:
+
+```bash
+.venv/bin/python scripts/regenerate_paper_figures.py --figures 4 7 8
+```
+
+These correspond to `scalability_disjointcycles.pdf`, `disjoint_micro.pdf`, and
+`synth_threshold.pdf` under `output/pdf/`. Figures 4 and 7 require the saved
+`src/expt/workflow/results/synth_scalability.csv` and `synth_disjoint.csv` files;
+use `--fig4-data PATH` and `--fig7-data PATH` if they are stored elsewhere.
+Figure 8 uses the archived 300-row snapshot in
+`data/reference/synth_threshold.csv.gz`, with provenance recorded beside it.
+Use `--figures 8` to regenerate only that available snapshot. No fitting jobs
+are launched by this script; missing saved data cause an explicit error.
+
+See [the experiment protocol and output guide](docs/ablation_d20.md) for the grid,
+timing boundaries, truncation diagnostics, exact-recovery definition, and resume
+commands. The paper's d=20 ablation uses one configuration,
+`config/ablation_d20.json`: 30 seeds per setting, no candidate-count cap, and a
+60-second total enumeration budget per dataset. Its measurements are in
+`src/expt/workflow/results/ablation_d20/`; the table is `output/pdf/ablation_d20_table.pdf`.

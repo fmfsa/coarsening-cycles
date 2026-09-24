@@ -9,8 +9,16 @@ devenv.local.nix
 # pre-commit
 .pre-commit-config.yaml
 
+# macOS
+.DS_Store
+
 # python
 **/__pycache__/
+/.venv/
+/.cache/
+/.pytest_cache/
+/output/
+/logs/
 
 # snakemake experiments
 /src/expt/.snakemake/

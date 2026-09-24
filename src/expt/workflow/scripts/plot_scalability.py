@@ -87,6 +87,7 @@ for ax, (ycol, ylabel, ylog) in zip(axes, PANELS):
         markers=False,
         estimator="median",
         errorbar=("ci", 95),
+        seed=0,
         linewidth=2.0,
         ax=ax,
         legend=False,
