@@ -238,7 +238,7 @@ def enumerate_admissible_candidates(
     *,
     threshold_b: float = 0.1,
     threshold_w: float = 0.1,
-    max_perms: int = 10_000,
+    max_perms: int | None = 10_000,
     time_budget_sec: float | None = None,
 ) -> dict:
     """Enumerate the admissible candidate set for ``W`` via N-rooks.
@@ -258,7 +258,8 @@ def enumerate_admissible_candidates(
       ``stable``   : list of thresholded B̂ candidates with ``ρ(B̂) < 1``.
       ``unstable`` : list of thresholded B̂ candidates with ``ρ(B̂) ≥ 1``.
       ``n_candidates_enumerated`` : number of admissible permutations
-          actually enumerated (≤ ``max_perms``).
+          actually enumerated (≤ ``max_perms`` when a count cap is set).
+          ``max_perms=None`` disables the candidate-count cap.
       ``enumeration_cap_hit`` : True iff at least one further admissible
           permutation exists beyond ``max_perms`` — determined by probing
           the generator once past the cap, not by comparing counts. When
@@ -268,6 +269,12 @@ def enumerate_admissible_candidates(
           search — the candidate lists are then a truncated subset and
           ``enumeration_cap_hit`` may be under-reported.
     """
+    if max_perms is not None and max_perms <= 0:
+        raise ValueError("max_perms must be positive or None")
+    deadline = (
+        time.monotonic() + time_budget_sec
+        if time_budget_sec is not None else None
+    )
     # Hungarian pre-check: polynomial certificate of (non-)existence.
     if _hungarian_permutation(W, threshold_w) is None:
         return {
@@ -275,13 +282,9 @@ def enumerate_admissible_candidates(
             "unstable": [],
             "n_candidates_enumerated": 0,
             "enumeration_cap_hit": False,
-            "enumeration_timed_out": False,
+            "enumeration_timed_out": deadline is not None and time.monotonic() > deadline,
         }
 
-    deadline = (
-        time.monotonic() + time_budget_sec
-        if time_budget_sec is not None else None
-    )
     gen = _nrooks_permutations(W, threshold_w, deadline=deadline)
     stable: list[np.ndarray] = []
     unstable: list[np.ndarray] = []
@@ -298,10 +301,13 @@ def enumerate_admissible_candidates(
             unstable.append(B_thresh)
     timed_out = deadline is not None and time.monotonic() > deadline
     cap_hit = (
-        n_enum == max_perms
+        max_perms is not None
+        and n_enum == max_perms
         and not timed_out
         and next(gen, None) is not None
     )
+    # The probe beyond a finite cap also consumes the enumeration budget.
+    timed_out = deadline is not None and time.monotonic() > deadline
     return {
         "stable": stable,
         "unstable": unstable,
