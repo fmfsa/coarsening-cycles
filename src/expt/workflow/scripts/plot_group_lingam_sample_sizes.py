@@ -27,11 +27,11 @@ preview = bool(getattr(snakemake.params, "preview", False))
 planned_sizes = list(getattr(snakemake.params, "planned_sizes", []))
 group_lingam_max_n = getattr(snakemake.params, "group_lingam_max_n", None)
 parallel_fits = int(getattr(snakemake.params, "parallel_fits", 1) or 1)
-# Match the rendered paper Fig. 6: a shared rose, distinguished by line style.
-methods = {"hungarian": ("ours", "#AE6B91", "-"),
-           "group_lingam": ("GroupLiNGAM", "#AE6B91", "--")}
-metrics = [("ari_scc", r"ARI $\uparrow$ — SCC partition"),
-           ("oracle_cluster_f1", r"$F_1$ $\uparrow$ — cluster DAG"),
+# Match the paper's disjoint-cycles figure: ours solid deep wine, baseline dashed rose.
+methods = {"hungarian": ("ours", "#2C1E3D", "-"),
+           "group_lingam": ("GroupLiNGAM", "#AE6B91", (0, (4, 2)))}
+metrics = [("ari_scc", r"ARI $\uparrow$" "\n" r"(SCC partition)"),
+           ("oracle_cluster_f1", r"$F_1$ $\uparrow$" "\n" r"(cluster DAG)"),
            ("fit_runtime_sec", r"fit time (s) $\downarrow$")]
 rows = []
 for (regime, n, method), group in df.groupby(["regime", "samp_size", "method"]):
@@ -55,7 +55,7 @@ sns.set_context("paper", font_scale=2.3)
 sns.set_style("white")
 plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False,
                      "pdf.fonttype": 42, "ps.fonttype": 42})
-fig, axes = plt.subplots(2, 3, figsize=(18, 9.3), sharey="col")
+fig, axes = plt.subplots(2, 3, figsize=(18, 10.4), sharey="col")
 sizes = sorted(df.samp_size.unique())
 display_sizes = sorted(set(sizes) | set(planned_sizes))
 for i, regime in enumerate(["hard", "unstable"]):
