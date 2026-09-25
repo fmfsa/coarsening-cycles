@@ -30,8 +30,9 @@ if max_n:
     df = df[df.samp_size <= int(max_n)]
 preview = bool(getattr(snakemake.params, "preview", False))
 planned_sizes = list(getattr(snakemake.params, "planned_sizes", []))
-group_lingam_max_n = getattr(snakemake.params, "group_lingam_max_n", None)
+group_lingam_max_n = dict(getattr(snakemake.params, "group_lingam_max_n", None) or {})
 parallel_fits = int(getattr(snakemake.params, "parallel_fits", 1) or 1)
+concurrency_note = getattr(snakemake.params, "concurrency_note", "") or ""
 # One row per regime; a single-regime figure drops the row title (caption names it).
 regimes = list(getattr(snakemake.params, "regimes", ["hard", "unstable"]))
 # Match the paper's disjoint-cycles figure: ours solid deep wine, baseline dashed rose.
@@ -116,14 +117,18 @@ if preview:
 fig.savefig(snakemake.output.pdf, bbox_inches="tight", pad_inches=.04)
 plt.close(fig)
 
+shown_caps = {r: c for r, c in group_lingam_max_n.items() if r in regimes and c < df.samp_size.max()}
+cap_note = ("GroupLiNGAM was run only for " + " and ".join(
+    f"n ≤ {c}" + (f" ({'stable' if r == 'hard' else r})" if len(set(group_lingam_max_n.values())) > 1 else "")
+    for r, c in sorted(shown_caps.items())) + "; larger sizes report ours alone. ") if shown_caps else ""
 if hasattr(snakemake.output, "report"):
     report = ["# Sample-size comparison: companion table", "",
               "The two methods receive identical observations per regime, n, and seed. "
               "d=10, 4 non-trivial SCCs, density 0.5, Laplace noise; one numerical thread per fit and "
-              + ("one timed fit at a time. " if parallel_fits == 1 else
+              + (concurrency_note.strip() + " " if concurrency_note else
+                 "one timed fit at a time. " if parallel_fits == 1 else
                  f"up to {parallel_fits} concurrent single-threaded timed fits (both methods share the same slots). ")
-              + (f"GroupLiNGAM was run only for n ≤ {group_lingam_max_n}; larger sizes report ours alone. "
-                 if group_lingam_max_n and group_lingam_max_n < df.samp_size.max() else "") +
+              + cap_note +
               "GroupLiNGAM 1.13.0: alpha=0.01, native edge estimation. Ours: Hungarian selection, threshold 0.1. "
               "Fit wall/CPU times exclude worker setup, data loading, and evaluation; they include lazy initialization inside the method call.", "",
               "ARI and F1 summarize completed fits only. F1 projects known predicted edges onto the true partition; "

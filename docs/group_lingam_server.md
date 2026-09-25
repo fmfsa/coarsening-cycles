@@ -61,7 +61,7 @@ The versioned configuration is `config/group_lingam_full.yaml`:
 - d=10, κ=4, density=0.5, independent Laplace noise.
 - Stable and unstable regimes, seeds 0–9.
 - n=100, 500, 1000, 2000, 5000, 10000.
-- Ours runs on every n; GroupLiNGAM only for n ≤ `group_lingam_max_n` (2000).
+- Ours runs on every n; GroupLiNGAM only for n ≤ `group_lingam_max_n` (stable 5000, unstable 2000).
   Where both run they see the same dataset: 120 datasets, 200 fits.
   (A serial GroupLiNGAM fit at n=2000 took ~28 min on the server, so
   n=10000 would need about a day per fit.)

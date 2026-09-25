@@ -49,7 +49,10 @@ rule paper_fig3_plot:
 full_config = config.get("group_lingam_full", {})
 full_sizes = full_config.get("sizes", [100, 500, 1000, 2000, 5000, 10000])
 full_seed_count = full_config.get("seeds", 10)
+# An integer caps both regimes; a {regime: n} mapping caps each regime separately.
 full_group_lingam_max_n = full_config.get("group_lingam_max_n", max(full_sizes))
+if not isinstance(full_group_lingam_max_n, dict):
+    full_group_lingam_max_n = {"hard": full_group_lingam_max_n, "unstable": full_group_lingam_max_n}
 full_timeouts = {int(n): float(seconds) for n, seconds in full_config.get(
     "timeout_by_n", {100: 600, 500: 600, 1000: 1800, 2000: 7200, 5000: 21600, 10000: 86400}
 ).items()}
@@ -58,8 +61,9 @@ if (not full_sizes or any(not isinstance(n, int) or n <= 0 for n in full_sizes)
         or not isinstance(full_seed_count, int) or full_seed_count < 1
         or any(n not in full_timeouts or full_timeouts[n] <= 0 for n in full_sizes)):
     raise ValueError("Invalid full GroupLiNGAM grid or missing/nonpositive time limit")
-if not isinstance(full_group_lingam_max_n, int) or full_group_lingam_max_n < min(full_sizes):
-    raise ValueError("group_lingam_max_n must be an integer covering at least one size")
+if (set(full_group_lingam_max_n) != {"hard", "unstable"}
+        or any(not isinstance(cap, int) or cap < min(full_sizes) for cap in full_group_lingam_max_n.values())):
+    raise ValueError("group_lingam_max_n must be an integer (or one per regime) covering at least one size")
 
 group_profiles = {
     "pilot": {"sizes": [100, 500, 1000], "seeds": range(3), "timeout": 120},
@@ -125,10 +129,11 @@ rule group_lingam_full_fit:
 def group_lingam_attempts(wc):
     """Ours on every size; GroupLiNGAM only up to the profile's size cap."""
     profile = group_profiles[wc.profile]
-    cap = profile.get("group_lingam_max_n", max(profile["sizes"]))
+    caps = profile.get("group_lingam_max_n", {})
     return [group_path.format(profile=wc.profile, regime=regime, samp_size=n, seed=seed, method=method)
             for regime in ["hard", "unstable"] for n in profile["sizes"] for seed in profile["seeds"]
-            for method in ["hungarian", "group_lingam"] if method == "hungarian" or n <= cap]
+            for method in ["hungarian", "group_lingam"]
+            if method == "hungarian" or n <= caps.get(regime, max(profile["sizes"]))]
 
 
 rule group_lingam_collect:
@@ -161,6 +166,7 @@ rule group_lingam_sample_sizes_plot:
     params:
         group_lingam_max_n=lambda wc: group_profiles[wc.profile].get("group_lingam_max_n"),
         parallel_fits=lambda wc: full_config.get("parallel_fits", 1) if wc.profile == "full" else 1,
+        concurrency_note=lambda wc: full_config.get("concurrency_note", "") if wc.profile == "full" else "",
     script:
         "../scripts/plot_group_lingam_sample_sizes.py"
 
@@ -173,6 +179,6 @@ rule group_lingam_sample_sizes_stable_plot:
     params:
         regimes=["hard"],
         # Stop at the largest size GroupLiNGAM was run at.
-        max_n=lambda wc: group_profiles[wc.profile].get("group_lingam_max_n"),
+        max_n=lambda wc: group_profiles[wc.profile].get("group_lingam_max_n", {}).get("hard"),
     script:
         "../scripts/plot_group_lingam_sample_sizes.py"
