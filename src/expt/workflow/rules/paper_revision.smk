@@ -163,3 +163,16 @@ rule group_lingam_sample_sizes_plot:
         parallel_fits=lambda wc: full_config.get("parallel_fits", 1) if wc.profile == "full" else 1,
     script:
         "../scripts/plot_group_lingam_sample_sizes.py"
+
+
+rule group_lingam_sample_sizes_stable_plot:
+    input:
+        "results/group_lingam/{profile}/metrics.csv",
+    output:
+        pdf="results/group_lingam/{profile}/sample_sizes_stable.pdf",
+    params:
+        regimes=["hard"],
+        # Stop at the largest size GroupLiNGAM was run at.
+        max_n=lambda wc: group_profiles[wc.profile].get("group_lingam_max_n"),
+    script:
+        "../scripts/plot_group_lingam_sample_sizes.py"

@@ -3,6 +3,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.ticker import NullLocator
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -23,10 +24,16 @@ def median_interval(values):
 
 
 df = pd.read_csv(snakemake.input[0])
+# Optionally restrict to sizes where both methods were run.
+max_n = getattr(snakemake.params, "max_n", None)
+if max_n:
+    df = df[df.samp_size <= int(max_n)]
 preview = bool(getattr(snakemake.params, "preview", False))
 planned_sizes = list(getattr(snakemake.params, "planned_sizes", []))
 group_lingam_max_n = getattr(snakemake.params, "group_lingam_max_n", None)
 parallel_fits = int(getattr(snakemake.params, "parallel_fits", 1) or 1)
+# One row per regime; a single-regime figure drops the row title (caption names it).
+regimes = list(getattr(snakemake.params, "regimes", ["hard", "unstable"]))
 # Match the paper's disjoint-cycles figure: ours solid deep wine, baseline dashed rose.
 methods = {"hungarian": ("ours", "#2C1E3D", "-"),
            "group_lingam": ("GroupLiNGAM", "#AE6B91", (0, (4, 2)))}
@@ -48,17 +55,18 @@ for (regime, n, method), group in df.groupby(["regime", "samp_size", "method"]):
         row[metric], row[metric+"_lo"], row[metric+"_hi"] = median_interval(ok[metric])
     rows.append(row)
 summary = pd.DataFrame(rows)
-summary.to_csv(snakemake.output.summary, index=False)
+if hasattr(snakemake.output, "summary"):
+    summary.to_csv(snakemake.output.summary, index=False)
 
 # Match Fig. 6's typography and layout.
 sns.set_context("paper", font_scale=2.3)
 sns.set_style("white")
 plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False,
                      "pdf.fonttype": 42, "ps.fonttype": 42})
-fig, axes = plt.subplots(2, 3, figsize=(18, 10.4), sharey="col")
+fig, axes = plt.subplots(len(regimes), 3, figsize=(18, 5.2*len(regimes)), sharey="col", squeeze=False)
 sizes = sorted(df.samp_size.unique())
 display_sizes = sorted(set(sizes) | set(planned_sizes))
-for i, regime in enumerate(["hard", "unstable"]):
+for i, regime in enumerate(regimes):
     for j, (metric, title) in enumerate(metrics):
         ax = axes[i, j]
         if planned_sizes:
@@ -83,14 +91,15 @@ for i, regime in enumerate(["hard", "unstable"]):
             lower = min(-.05, float(df.ari_scc.min())-.05) if j == 0 else -.05
             ax.set_ylim(lower, 1.05)
             ax.set_yticks([0, .25, .5, .75, 1])
-        if j == 1:
+        if j == 1 and len(regimes) > 1:
             ax.set_title("stable" if regime == "hard" else "unstable", pad=16)
         ax.set_xlabel(r"sample size $n$")
         ax.set_ylabel(title)
-        if planned_sizes:
-            ax.set_xticks(display_sizes)
-            ax.set_xticklabels([str(n) if n < 1000 else f"{n//1000}k" for n in display_sizes])
-            ax.set_xlim(min(display_sizes)/1.15, max(display_sizes)*1.15)
+        # Label exactly the sample sizes that were run.
+        ax.set_xticks(display_sizes)
+        ax.set_xticklabels([str(n) if n < 1000 else f"{n//1000}k" for n in display_sizes])
+        ax.xaxis.set_minor_locator(NullLocator())
+        ax.set_xlim(min(display_sizes)/1.15, max(display_sizes)*1.15)
 
 attempted = sorted(summary.attempted.unique())
 seed_note = f"{attempted[0]} paired seed{'s' if attempted[0] != 1 else ''}/cell" if len(attempted) == 1 else f"{attempted[0]}–{attempted[-1]} paired seeds/cell; see table"
@@ -98,47 +107,48 @@ stage_note = "Runtime feasibility" if str(snakemake.wildcards.profile) in ("feas
 title = "Layout preview: d = 10, measured results and planned sample sizes" if preview else f"{stage_note}: d = 10, {seed_note}"
 handles = [Line2D([0], [0], color=color, linestyle=style, lw=2.4, label=label)
            for label, color, style in methods.values()]
-fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(.5, 1.02),
+fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(.5, 1.02 if len(regimes) > 1 else 1.04),
            ncol=2, frameon=False, fontsize=18, handlelength=2, handletextpad=.5,
            labelspacing=.3, borderpad=.3, columnspacing=1.2)
-fig.tight_layout(rect=(0, 0, 1, .97), h_pad=2)
+fig.tight_layout(rect=(0, 0, 1, .97 if len(regimes) > 1 else .92), h_pad=2)
 if preview:
     fig.suptitle(title, y=1.08, fontsize=18)
 fig.savefig(snakemake.output.pdf, bbox_inches="tight", pad_inches=.04)
 plt.close(fig)
 
-report = ["# Sample-size comparison: companion table", "",
-          "The two methods receive identical observations per regime, n, and seed. "
-          "d=10, 4 non-trivial SCCs, density 0.5, Laplace noise; one numerical thread per fit and "
-          + ("one timed fit at a time. " if parallel_fits == 1 else
-             f"up to {parallel_fits} concurrent single-threaded timed fits (both methods share the same slots). ")
-          + (f"GroupLiNGAM was run only for n ≤ {group_lingam_max_n}; larger sizes report ours alone. "
-             if group_lingam_max_n and group_lingam_max_n < df.samp_size.max() else "") +
-          "GroupLiNGAM 1.13.0: alpha=0.01, native edge estimation. Ours: Hungarian selection, threshold 0.1. "
-          "Fit wall/CPU times exclude worker setup, data loading, and evaluation; they include lazy initialization inside the method call.", "",
-          "ARI and F1 summarize completed fits only. F1 projects known predicted edges onto the true partition; "
-          "it is an oracle diagnostic, not end-to-end condensation accuracy. Exact recovery requires both variable "
-          "memberships and condensation edges. Timeouts are unknown accuracy, and unsuccessful operational exact "
-          "recovery within the declared budget. Completed-only summaries may be biased if other fits time out. "
-          "Bootstrap intervals are descriptive with few seeds; no interval is estimated from a single seed.", "",
-          "| Regime | n | Method | Completed/attempts | Timeouts | Errors | ARI median | Oracle F1 median | Exact within budget/attempts | Wall s median | CPU s median | Budget s |",
-          "|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
-def fmt(value):
-    return "—" if pd.isna(value) else f"{value:.3g}"
-for r in summary.itertuples():
-    regime = "stable" if r.regime == "hard" else r.regime
-    budget = f"{r.timeout_sec:g}" if r.minimum_timeout_sec == r.timeout_sec else f"{r.minimum_timeout_sec:g}–{r.timeout_sec:g}"
-    report.append(f"| {regime} | {r.samp_size} | {methods[r.method][0]} | {r.completed}/{r.attempted} | {r.timed_out} | {r.errors} | {fmt(r.ari_scc)} | {fmt(r.oracle_cluster_f1)} | {r.exact_successes}/{r.attempted} | {fmt(r.fit_runtime_sec)} | {fmt(r.median_fit_cpu_sec)} | {budget} |")
-if preview:
-    report += ["", "LAYOUT PREVIEW ONLY: three pilot attempts per cell, with the completed "
-               "stable seed-0 GroupLiNGAM fit at n=1000 replaced by its longer-budget result. "
-               "The original 120-second pilot attempt is retained separately. The other n=1000 "
-               "baseline entries remain the original 120-second timeouts. Thus this preview "
-               "mixes budgets and has only one completed baseline fit at stable n=1000. "
-               "No new n=2000, 5000, or 10000 observations or accuracy results are implied "
-               "by the shaded planned region. The interrupted unstable feasibility attempt "
-               "is not scored or substituted for its original pilot record."]
-report += ["", "Peak RSS and interval endpoints are provided in the companion CSV. "
-           "Raw execution logs retain estimator convergence warnings. "
-           "This fixed-d experiment does not establish dimension scaling or a universal method ranking.", ""]
-Path(snakemake.output.report).write_text("\n".join(report))
+if hasattr(snakemake.output, "report"):
+    report = ["# Sample-size comparison: companion table", "",
+              "The two methods receive identical observations per regime, n, and seed. "
+              "d=10, 4 non-trivial SCCs, density 0.5, Laplace noise; one numerical thread per fit and "
+              + ("one timed fit at a time. " if parallel_fits == 1 else
+                 f"up to {parallel_fits} concurrent single-threaded timed fits (both methods share the same slots). ")
+              + (f"GroupLiNGAM was run only for n ≤ {group_lingam_max_n}; larger sizes report ours alone. "
+                 if group_lingam_max_n and group_lingam_max_n < df.samp_size.max() else "") +
+              "GroupLiNGAM 1.13.0: alpha=0.01, native edge estimation. Ours: Hungarian selection, threshold 0.1. "
+              "Fit wall/CPU times exclude worker setup, data loading, and evaluation; they include lazy initialization inside the method call.", "",
+              "ARI and F1 summarize completed fits only. F1 projects known predicted edges onto the true partition; "
+              "it is an oracle diagnostic, not end-to-end condensation accuracy. Exact recovery requires both variable "
+              "memberships and condensation edges. Timeouts are unknown accuracy, and unsuccessful operational exact "
+              "recovery within the declared budget. Completed-only summaries may be biased if other fits time out. "
+              "Bootstrap intervals are descriptive with few seeds; no interval is estimated from a single seed.", "",
+              "| Regime | n | Method | Completed/attempts | Timeouts | Errors | ARI median | Oracle F1 median | Exact within budget/attempts | Wall s median | CPU s median | Budget s |",
+              "|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
+    def fmt(value):
+        return "—" if pd.isna(value) else f"{value:.3g}"
+    for r in summary.itertuples():
+        regime = "stable" if r.regime == "hard" else r.regime
+        budget = f"{r.timeout_sec:g}" if r.minimum_timeout_sec == r.timeout_sec else f"{r.minimum_timeout_sec:g}–{r.timeout_sec:g}"
+        report.append(f"| {regime} | {r.samp_size} | {methods[r.method][0]} | {r.completed}/{r.attempted} | {r.timed_out} | {r.errors} | {fmt(r.ari_scc)} | {fmt(r.oracle_cluster_f1)} | {r.exact_successes}/{r.attempted} | {fmt(r.fit_runtime_sec)} | {fmt(r.median_fit_cpu_sec)} | {budget} |")
+    if preview:
+        report += ["", "LAYOUT PREVIEW ONLY: three pilot attempts per cell, with the completed "
+                   "stable seed-0 GroupLiNGAM fit at n=1000 replaced by its longer-budget result. "
+                   "The original 120-second pilot attempt is retained separately. The other n=1000 "
+                   "baseline entries remain the original 120-second timeouts. Thus this preview "
+                   "mixes budgets and has only one completed baseline fit at stable n=1000. "
+                   "No new n=2000, 5000, or 10000 observations or accuracy results are implied "
+                   "by the shaded planned region. The interrupted unstable feasibility attempt "
+                   "is not scored or substituted for its original pilot record."]
+    report += ["", "Peak RSS and interval endpoints are provided in the companion CSV. "
+               "Raw execution logs retain estimator convergence warnings. "
+               "This fixed-d experiment does not establish dimension scaling or a universal method ranking.", ""]
+    Path(snakemake.output.report).write_text("\n".join(report))

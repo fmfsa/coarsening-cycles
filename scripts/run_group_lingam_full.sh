@@ -17,7 +17,7 @@ mkdir -p "$MPLCONFIGDIR"
 slots=$("$python_path" -c "import sys, yaml; print(int(yaml.safe_load(open(sys.argv[1]))['group_lingam_full'].get('parallel_fits', 1)))" "$repo_dir/config/group_lingam_full.yaml")
 # A fresh source cache avoids using stale cached scripts after git pull.
 task_cache=$(mktemp -d "${TMPDIR:-/tmp}/coarsening-snakemake.XXXXXX")
-"$snakemake_path" results/group_lingam/full/sample_sizes.pdf \
+"$snakemake_path" results/group_lingam/full/sample_sizes.pdf results/group_lingam/full/sample_sizes_stable.pdf \
   --snakefile "$repo_dir/src/expt/workflow/Snakefile" \
   --directory "$repo_dir/src/expt/workflow" \
   --configfile "$repo_dir/config/group_lingam_full.yaml" \
