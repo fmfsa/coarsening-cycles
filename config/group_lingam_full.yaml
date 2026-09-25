@@ -7,15 +7,15 @@ group_lingam_full:
   # Serial fits: ~285 s at n=1000, ~28 min at n=2000; n=10000 would need ~1 day each.
   group_lingam_max_n:
     hard: 5000      # stable
-    unstable: 2000
+    unstable: 5000
   # Concurrent single-threaded timed fits. 8 slots slowed GroupLiNGAM ~3.6x
   # (serial n=1000 seed 2: 278 s vs 996 s), so n <= 2000 ran serially;
   # the n=5000 extension runs 4 at a time.
   parallel_fits: 4
   concurrency_note: >-
     one timed fit at a time for n <= 2000; the n=5000 fits ran 4 at a time,
-    so stable n=5000 GroupLiNGAM times are inflated by contention relative
-    to the serial points.
+    so n=5000 GroupLiNGAM times are inflated by contention relative to the
+    serial points.
   timeout_by_n:
     100: 600
     500: 600

@@ -171,14 +171,19 @@ rule group_lingam_sample_sizes_plot:
         "../scripts/plot_group_lingam_sample_sizes.py"
 
 
-rule group_lingam_sample_sizes_stable_plot:
+figure_regimes = {"stable": "hard", "unstable": "unstable"}
+
+
+rule group_lingam_sample_sizes_regime_plot:
     input:
         "results/group_lingam/{profile}/metrics.csv",
     output:
-        pdf="results/group_lingam/{profile}/sample_sizes_stable.pdf",
+        pdf="results/group_lingam/{profile}/sample_sizes_{figure_regime}.pdf",
+    wildcard_constraints:
+        figure_regime="stable|unstable",
     params:
-        regimes=["hard"],
-        # Stop at the largest size GroupLiNGAM was run at.
-        max_n=lambda wc: group_profiles[wc.profile].get("group_lingam_max_n", {}).get("hard"),
+        regimes=lambda wc: [figure_regimes[wc.figure_regime]],
+        # Stop at the largest size GroupLiNGAM was run at in this regime.
+        max_n=lambda wc: group_profiles[wc.profile].get("group_lingam_max_n", {}).get(figure_regimes[wc.figure_regime]),
     script:
         "../scripts/plot_group_lingam_sample_sizes.py"
