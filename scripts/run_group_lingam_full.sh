@@ -18,6 +18,7 @@ slots=$("$python_path" -c "import sys, yaml; print(int(yaml.safe_load(open(sys.a
 # A fresh source cache avoids using stale cached scripts after git pull.
 task_cache=$(mktemp -d "${TMPDIR:-/tmp}/coarsening-snakemake.XXXXXX")
 "$snakemake_path" results/group_lingam/full/sample_sizes.pdf results/group_lingam/full/sample_sizes_stable.pdf results/group_lingam/full/sample_sizes_unstable.pdf \
+  results/group_lingam/full/sample_sizes_stacked.pdf \
   --snakefile "$repo_dir/src/expt/workflow/Snakefile" \
   --directory "$repo_dir/src/expt/workflow" \
   --configfile "$repo_dir/config/group_lingam_full.yaml" \

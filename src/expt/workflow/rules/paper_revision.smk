@@ -171,7 +171,8 @@ rule group_lingam_sample_sizes_plot:
         "../scripts/plot_group_lingam_sample_sizes.py"
 
 
-figure_regimes = {"stable": "hard", "unstable": "unstable"}
+# "stacked" puts stable above unstable, both up to the larger GroupLiNGAM cap.
+figure_regimes = {"stable": ["hard"], "unstable": ["unstable"], "stacked": ["hard", "unstable"]}
 
 
 rule group_lingam_sample_sizes_regime_plot:
@@ -180,10 +181,11 @@ rule group_lingam_sample_sizes_regime_plot:
     output:
         pdf="results/group_lingam/{profile}/sample_sizes_{figure_regime}.pdf",
     wildcard_constraints:
-        figure_regime="stable|unstable",
+        figure_regime="stable|unstable|stacked",
     params:
-        regimes=lambda wc: [figure_regimes[wc.figure_regime]],
+        regimes=lambda wc: figure_regimes[wc.figure_regime],
         # Stop at the largest size GroupLiNGAM was run at in this regime.
-        max_n=lambda wc: group_profiles[wc.profile].get("group_lingam_max_n", {}).get(figure_regimes[wc.figure_regime]),
+        max_n=lambda wc: max(group_profiles[wc.profile].get("group_lingam_max_n", {}).get(r, 0)
+                             for r in figure_regimes[wc.figure_regime]) or None,
     script:
         "../scripts/plot_group_lingam_sample_sizes.py"
