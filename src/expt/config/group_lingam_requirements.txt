@@ -1,0 +1,16 @@
+# GroupLiNGAM comparison, Python 3.11 (lingam 1.13.0 needs SciPy <= 1.13.1).
+# Versions used for the committed results.
+lingam==1.13.0
+numpy==2.2.6
+scipy==1.13.1
+scikit-learn==1.9.1
+networkx==3.6.1
+dcor==0.7
+pandas==3.0.6
+matplotlib==3.11.2
+seaborn==0.13.2
+psutil==7.2.2
+threadpoolctl==3.7.0
+PyYAML==6.0.3
+snakemake==9.27.0
+pytest==9.1.1

@@ -1,0 +1,13 @@
+# GroupLiNGAM vs ours over sample size (scripts/run_group_lingam.sh).
+group_lingam:
+  sizes: [100, 500, 1000, 2000, 5000, 10000]
+  seeds: 10
+  group_lingam_max_n: 5000  # GroupLiNGAM only up to this n; ours on every size
+  parallel_fits: 1          # concurrent fits inflate GroupLiNGAM times (~3.6x with 8)
+  timeout_by_n:             # seconds, same limit for both methods
+    100: 600
+    500: 600
+    1000: 1800
+    2000: 7200
+    5000: 86400
+    10000: 86400

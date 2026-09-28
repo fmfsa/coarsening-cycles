@@ -109,6 +109,9 @@ snakemake results/intervention_effects.csv results/intervention_effects.pdf --co
 snakemake results/sample_complexity.pdf --cores all
 ```
 
+The GroupLiNGAM comparison takes days and has its own launcher; see
+"GroupLiNGAM comparison" below.
+
 ## Experiment grids
 
 The grids share one set of generate/fit/evaluate scripts. Defaults are in `src/expt/workflow/rules/synth.smk`, `rules/threshold.smk`, `rules/ablation.smk`, and `rules/intervention.smk`.
@@ -240,15 +243,18 @@ src/
     lingd.py                # ICA-LiNG-D, staged: ICA / enumeration / selection
     metrics.py              # Split/merge partition diagnostics
     intervention.py         # Whole-SCC hard interventions + block regression
+    benchmark.py            # GroupLiNGAM adapter + condensation metrics
     examples.py             # Hard-coded SEMs from the literature (e.g. Lacerda 2008)
   expt/
     config/ablation_d20.json  # d=20 selection-ablation configuration
+    config/group_lingam*      # GroupLiNGAM comparison config + Python 3.11 pins
     workflow/               # Snakemake pipeline
       Snakefile             # Top-level: lists the four paper figures as targets
       rules/synth.smk       # Main + scalability + disjoint-micro grids
       rules/threshold.smk   # Threshold-sensitivity sweep
       rules/ablation.smk    # Candidate-selection ablation (+ cost arm)
       rules/intervention.smk  # Whole-SCC intervention experiment
+      rules/group_lingam.smk  # GroupLiNGAM vs ours over sample size
       scripts/              # generate / fit / evaluate / collect / plot_*
       results/              # Outputs; paper data are committed, the rest is gitignored
 scripts/                    # d=20 ablation runner/report; figure replotting
@@ -258,6 +264,7 @@ tests/
   test_selection_ablation.py # Exact recovery, seed aggregation, shared budget
   test_metrics.py           # Split/merge diagnostics
   test_intervention.py      # Convention check, Monte Carlo, block regression
+  test_benchmark.py         # GroupLiNGAM adapter and condensation metrics
 ```
 
 ## Tests
@@ -275,6 +282,7 @@ to `output/pdf/`.
 ```bash
 .venv/bin/python scripts/regenerate_paper_figures.py              # Figs 3 and 5
 .venv/bin/python scripts/regenerate_paper_figures.py --figures 4 7 8
+.venv/bin/python scripts/regenerate_paper_figures.py --figures grouplingam
 ```
 
 | Fig. | Data (under `src/expt/workflow/results/`) | Output |
@@ -284,6 +292,7 @@ to `output/pdf/`.
 | 5 | `sample_complexity.csv` | `fig5_sample_complexity.pdf` |
 | 7 | `synth_disjoint.csv` | `disjoint_micro.pdf` |
 | 8 | `synth_threshold.csv` | `synth_threshold.pdf` |
+| GroupLiNGAM | `group_lingam_metrics.csv` | `group_lingam_sample_sizes.pdf` |
 
 Use `--fig{N}-data PATH` to point at data stored elsewhere.
 `paper_fig3.csv.gz` is a 1,440-row snapshot (first-stable; 2 regimes × 8 sample
@@ -338,3 +347,27 @@ per-dataset `result.json` and `estimate.npz` (ICA estimate and ground truth);
 `draws.csv`, `cells.csv`, `summary.csv` (draw-, dataset- and aggregate-level);
 `verification.json` (run checks: timeouts, missing estimates, largest candidate
 list, control admissibility).
+
+## GroupLiNGAM comparison
+
+Ours vs GroupLiNGAM (`lingam` 1.13.0, alpha=0.01) on the same datasets: d=10,
+κ=4, density 0.5, Laplace noise, stable and unstable regimes, seeds 0–9.
+GroupLiNGAM runs up to n=5,000 (its fit time grows roughly like n^2.5: ~285 s
+at n=1,000, ~27 min at n=2,000); ours runs up to n=10,000. Each fit is a
+timed, single-threaded worker with the same per-n time limit for both methods
+(`src/expt/config/group_lingam.yaml`), checkpointed as JSON so the sweep
+resumes after interruption. Concurrent fits inflate GroupLiNGAM times (~3.6×
+with 8 at once), so run one at a time; the committed results ran serially for
+n ≤ 2,000 and four at a time at n=5,000, so the n=5,000 times are inflated.
+
+It needs Python 3.11 (lingam 1.13.0 requires SciPy ≤ 1.13.1) and takes
+several days:
+
+```bash
+python3.11 -m venv .venv
+.venv/bin/pip install -r src/expt/config/group_lingam_requirements.txt -e .
+bash scripts/run_group_lingam.sh   # resumable
+```
+
+Outputs: `results/group_lingam_metrics.csv` (one row per fit) and
+`results/group_lingam_sample_sizes.pdf` (stable above unstable).
