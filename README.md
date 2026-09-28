@@ -247,8 +247,7 @@ src/
     examples.py             # Hard-coded SEMs from the literature (e.g. Lacerda 2008)
   expt/
     config/ablation_d20.json  # d=20 selection-ablation configuration
-    config/group_lingam.yaml  # GroupLiNGAM comparison grid, limits, concurrency
-    config/group_lingam_requirements.txt  # Pinned Python 3.11 packages for it
+    config/group_lingam*      # GroupLiNGAM comparison config + Python 3.11 pins
     workflow/               # Snakemake pipeline
       Snakefile             # Top-level: lists the four paper figures as targets
       rules/synth.smk       # Main + scalability + disjoint-micro grids
@@ -351,43 +350,24 @@ list, control admissibility).
 
 ## GroupLiNGAM comparison
 
-Ours against GroupLiNGAM (`lingam` 1.13.0, alpha=0.01, native edge
-estimation) over sample size. Both methods see the same dataset per regime, n
-and seed: d=10, κ=4, density 0.5, Laplace noise, stable and unstable regimes,
-seeds 0–9. Ours uses Hungarian selection with thresholds 0.1 and FastICA
-max_iter=10,000, tol=1e-6, seeded by the dataset seed. Ours runs at
-n ∈ {100, 500, 1,000, 2,000, 5,000, 10,000}; GroupLiNGAM only up to
-n=5,000 (`group_lingam_max_n`), since its dense n×n kernel tests grow roughly
-like n^2.5 (median fit alone: ~6 s at n=100, ~285 s at n=1,000, ~27 min at
-n=2,000).
+Ours vs GroupLiNGAM (`lingam` 1.13.0, alpha=0.01) on the same datasets: d=10,
+κ=4, density 0.5, Laplace noise, stable and unstable regimes, seeds 0–9.
+GroupLiNGAM runs up to n=5,000 (its fit time grows roughly like n^2.5: ~285 s
+at n=1,000, ~27 min at n=2,000); ours runs up to n=10,000. Each fit is a
+timed, single-threaded worker with the same per-n time limit for both methods
+(`src/expt/config/group_lingam.yaml`), checkpointed as JSON so the sweep
+resumes after interruption. Concurrent fits inflate GroupLiNGAM times (~3.6×
+with 8 at once), so run one at a time; the committed results ran serially for
+n ≤ 2,000 and four at a time at n=5,000, so the n=5,000 times are inflated.
 
-**Measurement.** Each fit runs in its own worker process with one numerical
-thread and a per-n time limit shared by both methods
-(`src/expt/config/group_lingam.yaml`). Fit wall/CPU time excludes worker
-start-up, data loading and scoring; for ours it covers FastICA and selection.
-Every attempt, including a timeout, is checkpointed as
-`results/group_lingam/regime=*/n=*/seed=*/method=*.json` with groups, known
-edges, dataset and source hashes, package versions, timing and peak RSS. ARI
-and cluster-DAG F1 summarize completed fits only; a timeout has unknown
-accuracy and counts as a failed exact recovery.
-
-**Concurrency.** Concurrent fits contend for memory bandwidth: eight at once
-slowed GroupLiNGAM about 3.6× at n=1,000. The clean protocol is one fit at a
-time (`parallel_fits: 1`). The committed results ran serially for n ≤ 2,000
-and four at a time for n=5,000, so GroupLiNGAM's n=5,000 times (median ~11 h)
-are inflated relative to the serial points.
-
-**Running it.** Use Python 3.11 (lingam 1.13.0 needs SciPy ≤ 1.13.1):
+It needs Python 3.11 (lingam 1.13.0 requires SciPy ≤ 1.13.1) and takes
+several days:
 
 ```bash
 python3.11 -m venv .venv
-.venv/bin/pip install -r src/expt/config/group_lingam_requirements.txt
-.venv/bin/pip install -e .
-bash scripts/run_group_lingam.sh --dry-run
-bash scripts/run_group_lingam.sh   # resumable; rerun after an interruption
+.venv/bin/pip install -r src/expt/config/group_lingam_requirements.txt -e .
+bash scripts/run_group_lingam.sh   # resumable
 ```
 
-The full sweep takes several days on one core per fit. It writes
-`group_lingam_metrics.csv` (one row per fit) and
-`group_lingam_sample_sizes.pdf` (stable above unstable, n ≤ 5,000) under
-`src/expt/workflow/results/`; both are committed, the per-fit JSONs are not.
+Outputs: `results/group_lingam_metrics.csv` (one row per fit) and
+`results/group_lingam_sample_sizes.pdf` (stable above unstable).
