@@ -375,7 +375,7 @@ accuracy and counts as a failed exact recovery.
 slowed GroupLiNGAM about 3.6× at n=1,000. The clean protocol is one fit at a
 time (`parallel_fits: 1`). The committed results ran serially for n ≤ 2,000
 and four at a time for n=5,000, so GroupLiNGAM's n=5,000 times (median ~11 h)
-are inflated relative to the serial points; the companion table states this.
+are inflated relative to the serial points.
 
 **Running it.** Use Python 3.11 (lingam 1.13.0 needs SciPy ≤ 1.13.1):
 
@@ -387,11 +387,7 @@ bash scripts/run_group_lingam.sh --dry-run
 bash scripts/run_group_lingam.sh   # resumable; rerun after an interruption
 ```
 
-The full sweep takes several days on one core per fit. Outputs under
-`src/expt/workflow/results/`: `group_lingam_metrics.csv` (one row per fit),
-`group_lingam_sample_sizes.pdf` (stable above unstable, n ≤ 5,000),
-`group_lingam_sample_sizes_table.md` (companion table: completion counts,
-medians, exact recovery, limits) and `group_lingam_sample_sizes_summary.csv`
-(with bootstrap intervals and peak RSS). The metrics, figure, table and
-`group_lingam_provenance.json` (commits, environment, protocol history) are
-committed; the per-fit JSONs are not.
+The full sweep takes several days on one core per fit. It writes
+`group_lingam_metrics.csv` (one row per fit) and
+`group_lingam_sample_sizes.pdf` (stable above unstable, n ≤ 5,000) under
+`src/expt/workflow/results/`; both are committed, the per-fit JSONs are not.

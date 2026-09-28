@@ -68,11 +68,8 @@ rule group_lingam_plot:
     input:
         "results/group_lingam_metrics.csv",
     output:
-        pdf="results/group_lingam_sample_sizes.pdf",
-        summary="results/group_lingam_sample_sizes_summary.csv",
-        report="results/group_lingam_sample_sizes_table.md",
+        "results/group_lingam_sample_sizes.pdf",
     params:
         max_n=gl_max_n,
-        protocol_note=gl_config.get("protocol_note", ""),
     script:
         "../scripts/plot_group_lingam_sample_sizes.py"

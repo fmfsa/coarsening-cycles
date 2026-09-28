@@ -3,11 +3,7 @@
 One row per regime (stable above unstable by default), up to the largest n
 at which GroupLiNGAM was run. Timeouts are never plotted as zero accuracy;
 they appear as open triangles at their time limit on the time panel.
-Also writes a per-cell summary CSV and a Markdown companion table when the
-Snakemake rule declares them; `scripts/regenerate_paper_figures.py` passes
-only the PDF.
 """
-from pathlib import Path
 from types import SimpleNamespace
 
 import matplotlib.pyplot as plt
@@ -33,14 +29,11 @@ def median_interval(values):
 
 
 params = getattr(snakemake, "params", SimpleNamespace())
-output = snakemake.output
-pdf_path = getattr(output, "pdf", None) or output[0]
 df = pd.read_csv(snakemake.input[0])
 # Stop at the largest size where both methods were run.
 max_n = getattr(params, "max_n", None) or int(df[df.method == "group_lingam"].samp_size.max())
 df = df[df.samp_size <= int(max_n)]
 regimes = list(getattr(params, "regimes", ["hard", "unstable"]))
-protocol_note = getattr(params, "protocol_note", "") or ""
 
 # Match the paper's disjoint-cycles figure: ours solid deep wine, baseline dashed rose.
 methods = {"hungarian": ("ours", "#2C1E3D", "-"),
@@ -63,8 +56,6 @@ for (regime, n, method), group in df.groupby(["regime", "samp_size", "method"]):
         row[metric], row[metric+"_lo"], row[metric+"_hi"] = median_interval(ok[metric])
     rows.append(row)
 summary = pd.DataFrame(rows)
-if hasattr(output, "summary"):
-    summary.to_csv(output.summary, index=False)
 
 sns.set_context("paper", font_scale=2.3)
 sns.set_style("white")
@@ -108,30 +99,6 @@ fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(.5, 1.02 if len(
            ncol=2, frameon=False, fontsize=18, handlelength=2, handletextpad=.5,
            labelspacing=.3, borderpad=.3, columnspacing=1.2)
 fig.tight_layout(rect=(0, 0, 1, .97 if len(regimes) > 1 else .92), h_pad=2)
-fig.savefig(pdf_path, bbox_inches="tight", pad_inches=.04)
+fig.savefig(snakemake.output[0], bbox_inches="tight", pad_inches=.04)
 plt.close(fig)
 
-if hasattr(output, "report"):
-    report = ["# GroupLiNGAM sample-size comparison: companion table", "",
-              "The two methods receive identical observations per regime, n, and seed. "
-              "d=10, 4 non-trivial SCCs, density 0.5, Laplace noise; one numerical thread per fit. "
-              + (protocol_note.strip() + " " if protocol_note else "") +
-              "GroupLiNGAM 1.13.0: alpha=0.01, native edge estimation. Ours: Hungarian selection, threshold 0.1. "
-              "Fit wall/CPU times exclude worker setup, data loading, and evaluation; they include lazy initialization inside the method call.", "",
-              "ARI and F1 summarize completed fits only. F1 projects known predicted edges onto the true partition; "
-              "it is an oracle diagnostic, not end-to-end condensation accuracy. Exact recovery requires both variable "
-              "memberships and condensation edges. Timeouts are unknown accuracy, and unsuccessful operational exact "
-              "recovery within the declared budget. Completed-only summaries may be biased if other fits time out. "
-              "Bootstrap intervals are descriptive with few seeds; no interval is estimated from a single seed.", "",
-              "| Regime | n | Method | Completed/attempts | Timeouts | Errors | ARI median | Oracle F1 median | Exact within budget/attempts | Wall s median | CPU s median | Budget s |",
-              "|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
-
-    def fmt(value):
-        return "—" if pd.isna(value) else f"{value:.3g}"
-    for r in summary.itertuples():
-        regime = "stable" if r.regime == "hard" else r.regime
-        budget = f"{r.timeout_sec:g}" if r.minimum_timeout_sec == r.timeout_sec else f"{r.minimum_timeout_sec:g}–{r.timeout_sec:g}"
-        report.append(f"| {regime} | {r.samp_size} | {methods[r.method][0]} | {r.completed}/{r.attempted} | {r.timed_out} | {r.errors} | {fmt(r.ari_scc)} | {fmt(r.oracle_cluster_f1)} | {r.exact_successes}/{r.attempted} | {fmt(r.fit_runtime_sec)} | {fmt(r.median_fit_cpu_sec)} | {budget} |")
-    report += ["", "Peak RSS and interval endpoints are provided in the companion CSV. "
-               "This fixed-d experiment does not establish dimension scaling or a universal method ranking.", ""]
-    Path(output.report).write_text("\n".join(report))

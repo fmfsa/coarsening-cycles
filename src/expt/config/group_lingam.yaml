@@ -18,8 +18,3 @@ group_lingam:
     2000: 7200
     5000: 86400
     10000: 86400
-  # Describes how the committed results/group_lingam_metrics.csv was produced.
-  protocol_note: >-
-    Fits ran one at a time for n <= 2000; the n=5000 fits ran 4 at a time,
-    so n=5000 GroupLiNGAM times are inflated by contention relative to the
-    serial points.
