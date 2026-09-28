@@ -109,6 +109,9 @@ snakemake results/intervention_effects.csv results/intervention_effects.pdf --co
 snakemake results/sample_complexity.pdf --cores all
 ```
 
+The GroupLiNGAM comparison takes days and has its own launcher; see
+"GroupLiNGAM comparison" below.
+
 ## Experiment grids
 
 The grids share one set of generate/fit/evaluate scripts. Defaults are in `src/expt/workflow/rules/synth.smk`, `rules/threshold.smk`, `rules/ablation.smk`, and `rules/intervention.smk`.
@@ -240,15 +243,19 @@ src/
     lingd.py                # ICA-LiNG-D, staged: ICA / enumeration / selection
     metrics.py              # Split/merge partition diagnostics
     intervention.py         # Whole-SCC hard interventions + block regression
+    benchmark.py            # GroupLiNGAM adapter + condensation metrics
     examples.py             # Hard-coded SEMs from the literature (e.g. Lacerda 2008)
   expt/
     config/ablation_d20.json  # d=20 selection-ablation configuration
+    config/group_lingam.yaml  # GroupLiNGAM comparison grid, limits, concurrency
+    config/group_lingam_requirements.txt  # Pinned Python 3.11 packages for it
     workflow/               # Snakemake pipeline
       Snakefile             # Top-level: lists the four paper figures as targets
       rules/synth.smk       # Main + scalability + disjoint-micro grids
       rules/threshold.smk   # Threshold-sensitivity sweep
       rules/ablation.smk    # Candidate-selection ablation (+ cost arm)
       rules/intervention.smk  # Whole-SCC intervention experiment
+      rules/group_lingam.smk  # GroupLiNGAM vs ours over sample size
       scripts/              # generate / fit / evaluate / collect / plot_*
       results/              # Outputs; paper data are committed, the rest is gitignored
 scripts/                    # d=20 ablation runner/report; figure replotting
@@ -258,6 +265,7 @@ tests/
   test_selection_ablation.py # Exact recovery, seed aggregation, shared budget
   test_metrics.py           # Split/merge diagnostics
   test_intervention.py      # Convention check, Monte Carlo, block regression
+  test_benchmark.py         # GroupLiNGAM adapter and condensation metrics
 ```
 
 ## Tests
@@ -275,6 +283,7 @@ to `output/pdf/`.
 ```bash
 .venv/bin/python scripts/regenerate_paper_figures.py              # Figs 3 and 5
 .venv/bin/python scripts/regenerate_paper_figures.py --figures 4 7 8
+.venv/bin/python scripts/regenerate_paper_figures.py --figures grouplingam
 ```
 
 | Fig. | Data (under `src/expt/workflow/results/`) | Output |
@@ -284,6 +293,7 @@ to `output/pdf/`.
 | 5 | `sample_complexity.csv` | `fig5_sample_complexity.pdf` |
 | 7 | `synth_disjoint.csv` | `disjoint_micro.pdf` |
 | 8 | `synth_threshold.csv` | `synth_threshold.pdf` |
+| GroupLiNGAM | `group_lingam_metrics.csv` | `group_lingam_sample_sizes.pdf` |
 
 Use `--fig{N}-data PATH` to point at data stored elsewhere.
 `paper_fig3.csv.gz` is a 1,440-row snapshot (first-stable; 2 regimes × 8 sample
@@ -338,3 +348,50 @@ per-dataset `result.json` and `estimate.npz` (ICA estimate and ground truth);
 `draws.csv`, `cells.csv`, `summary.csv` (draw-, dataset- and aggregate-level);
 `verification.json` (run checks: timeouts, missing estimates, largest candidate
 list, control admissibility).
+
+## GroupLiNGAM comparison
+
+Ours against GroupLiNGAM (`lingam` 1.13.0, alpha=0.01, native edge
+estimation) over sample size. Both methods see the same dataset per regime, n
+and seed: d=10, κ=4, density 0.5, Laplace noise, stable and unstable regimes,
+seeds 0–9. Ours uses Hungarian selection with thresholds 0.1 and FastICA
+max_iter=10,000, tol=1e-6, seeded by the dataset seed. Ours runs at
+n ∈ {100, 500, 1,000, 2,000, 5,000, 10,000}; GroupLiNGAM only up to
+n=5,000 (`group_lingam_max_n`), since its dense n×n kernel tests grow roughly
+like n^2.5 (median fit alone: ~6 s at n=100, ~285 s at n=1,000, ~27 min at
+n=2,000).
+
+**Measurement.** Each fit runs in its own worker process with one numerical
+thread and a per-n time limit shared by both methods
+(`src/expt/config/group_lingam.yaml`). Fit wall/CPU time excludes worker
+start-up, data loading and scoring; for ours it covers FastICA and selection.
+Every attempt, including a timeout, is checkpointed as
+`results/group_lingam/regime=*/n=*/seed=*/method=*.json` with groups, known
+edges, dataset and source hashes, package versions, timing and peak RSS. ARI
+and cluster-DAG F1 summarize completed fits only; a timeout has unknown
+accuracy and counts as a failed exact recovery.
+
+**Concurrency.** Concurrent fits contend for memory bandwidth: eight at once
+slowed GroupLiNGAM about 3.6× at n=1,000. The clean protocol is one fit at a
+time (`parallel_fits: 1`). The committed results ran serially for n ≤ 2,000
+and four at a time for n=5,000, so GroupLiNGAM's n=5,000 times (median ~11 h)
+are inflated relative to the serial points; the companion table states this.
+
+**Running it.** Use Python 3.11 (lingam 1.13.0 needs SciPy ≤ 1.13.1):
+
+```bash
+python3.11 -m venv .venv
+.venv/bin/pip install -r src/expt/config/group_lingam_requirements.txt
+.venv/bin/pip install -e .
+bash scripts/run_group_lingam.sh --dry-run
+bash scripts/run_group_lingam.sh   # resumable; rerun after an interruption
+```
+
+The full sweep takes several days on one core per fit. Outputs under
+`src/expt/workflow/results/`: `group_lingam_metrics.csv` (one row per fit),
+`group_lingam_sample_sizes.pdf` (stable above unstable, n ≤ 5,000),
+`group_lingam_sample_sizes_table.md` (companion table: completion counts,
+medians, exact recovery, limits) and `group_lingam_sample_sizes_summary.csv`
+(with bootstrap intervals and peak RSS). The metrics, figure, table and
+`group_lingam_provenance.json` (commits, environment, protocol history) are
+committed; the per-fit JSONs are not.
