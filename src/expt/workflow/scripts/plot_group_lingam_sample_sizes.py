@@ -118,9 +118,12 @@ fig.savefig(snakemake.output.pdf, bbox_inches="tight", pad_inches=.04)
 plt.close(fig)
 
 shown_caps = {r: c for r, c in group_lingam_max_n.items() if r in regimes and c < df.samp_size.max()}
-cap_note = ("GroupLiNGAM was run only for " + " and ".join(
-    f"n ≤ {c}" + (f" ({'stable' if r == 'hard' else r})" if len(set(group_lingam_max_n.values())) > 1 else "")
-    for r, c in sorted(shown_caps.items())) + "; larger sizes report ours alone. ") if shown_caps else ""
+if len(set(shown_caps.values())) == 1:
+    cap_parts = [f"n ≤ {next(iter(shown_caps.values()))}"]
+else:
+    cap_parts = [f"n ≤ {c} ({'stable' if r == 'hard' else r})" for r, c in sorted(shown_caps.items())]
+cap_note = ("GroupLiNGAM was run only for " + " and ".join(cap_parts)
+            + "; larger sizes report ours alone. ") if shown_caps else ""
 if hasattr(snakemake.output, "report"):
     report = ["# Sample-size comparison: companion table", "",
               "The two methods receive identical observations per regime, n, and seed. "
